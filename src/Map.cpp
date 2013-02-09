@@ -103,14 +103,66 @@ void Map::Generate(int xSize, int ySize, int seed)
         GenerateLine(xSize, ySize, i, random);
     }
 
+    // Initialize the stop children.
+    for (int i = 0; i < m_numRails; ++i)
+    {
+        const Rail& rail = m_rail[i];
+        Stop& stop1 = m_stop[rail.stop1];
+        Stop& stop2 = m_stop[rail.stop2];
+        stop1.children.push_back(rail.stop2);
+        stop2.children.push_back(rail.stop1);
+    }
 
- 
+    /*
+    // Interative straighen out the lines.
+
+    const int numPasses = 100;
+    for (int pass = 0; pass < numPasses; ++pass)
+    {
+        for (int i = 0; i < m_numStops; ++i)
+        {
+           Stop& stop = m_stop[i];
+           StraightenStop(stop);
+        }
+    }
+    */
+
+}
+
+void Map::StraightenStop(Stop& stop)
+{
+    if (stop.children.size() == 2)
+    {
+
+        int child1 = stop.children[0];
+        int child2 = stop.children[1];
+
+        const Stop& stop1 = m_stop[child1];
+        const Stop& stop2 = m_stop[child2];
+
+        Vec2 e1 = stop1.point - stop.point;
+        Vec2 e2 = stop2.point - stop.point;
+
+        e1.Normalize();
+        e2.Normalize();
+
+        float angle = DotProduct( e1, e2 );
+
+        if (angle < 0.01f)
+        {
+            // Make it into a straight line.
+            Vec2 d = stop2.point - stop1.point;
+            d.Normalize();
+            Vec2 p = stop1.point + DotProduct(d, stop.point - stop1.point) * d;
+            stop.point = p;
+        }
+
+    }
 }
 
 void Map::Connect(int stop1, int stop2, int line)
 {
     assert(line >= 0);
-
     
     const Stop& s1 = m_stop[stop1];
     const Stop& s2 = m_stop[stop2];
@@ -133,9 +185,11 @@ void Map::Connect(int stop1, int stop2, int line)
             m_rail[m_numRails].stop1 = midStop;
             m_rail[m_numRails].stop2 = rail.stop2;
             m_rail[m_numRails].line  = rail.line;
+            EnforceRailConstraint(m_rail[m_numRails]);
             ++m_numRails;
             
             rail.stop2 = midStop;
+            EnforceRailConstraint(rail);
 
             Connect(stop1, midStop, line);
             Connect(midStop, stop2, line);
@@ -146,6 +200,7 @@ void Map::Connect(int stop1, int stop2, int line)
     assert(m_numRails < s_maxRails);
     m_rail[m_numRails].stop1 = stop1;
     m_rail[m_numRails].stop2 = stop2;
+    EnforceRailConstraint(m_rail[m_numRails]);
     m_rail[m_numRails].line  = line;
     ++m_numRails;
 }
@@ -242,5 +297,12 @@ void Map::GenerateLine(int xSize, int ySize, int stopIndex, Random& random)
 
     m_stop[stopIndex].terminal = true;
 
+}
 
+void Map::EnforceRailConstraint(Rail& rail) const
+{
+    if (rail.stop1 > rail.stop2)
+    {
+        Swap(rail.stop1, rail.stop2);
+    }
 }

@@ -2,14 +2,16 @@
 #define GAME_MAP_H
 
 #include "Vec2.h"
+#include <vector>
 
 class Random;
 
 struct Stop
 {
-    Vec2    point;
-    int     line; // -1 means a hub
-    bool    terminal; // End of the line buddy
+    Vec2                point;
+    int                 line;       // -1 means a hub
+    bool                terminal;   // End of the line buddy
+    std::vector<int>    children;
 };
 
 struct Rail
@@ -42,6 +44,9 @@ private:
     void Connect(int stop1, int stop2, int line);
 
     void GenerateLine(int xSize, int ySize, int stopIndex, Random& random);
+
+    void EnforceRailConstraint(Rail& rail) const;
+    void StraightenStop(Stop& stop);
 
 private:
 
