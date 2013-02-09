@@ -1,8 +1,11 @@
 #include "Render.h"
 #include "Texture.h"
 #include "ClientGame.h"
+#include "Server.h"
+#include "Client.h"
 
 #include <SDL.h>
+
 
 bool ProcessEvents(ClientGame& game)
 {
@@ -62,6 +65,8 @@ int main(int argc, char* argv[])
     const int xSize = 1280;
     const int ySize = 800;
 
+    Host::Initialize();
+
     if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0 )
     {
         exit(EXIT_FAILURE);
@@ -92,6 +97,10 @@ int main(int argc, char* argv[])
     }
 
     ClientGame game(xSize, ySize);
+    
+    Server server;
+    Client client;
+    client.Connect("127.0.0.1", 12345);
 
     game.LoadResources();
 
@@ -99,7 +108,11 @@ int main(int argc, char* argv[])
     {
         game.Render();
         SDL_GL_SwapBuffers();
+        server.Update();
+        client.Update();
     }
+
+    Host::Shutdown();
 
     return EXIT_SUCCESS;
 

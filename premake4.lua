@@ -36,15 +36,18 @@ project "TheGrid"
     includedirs {
 		"libs/SDL/include",
 		"libs/FreeImage/include",
+		"libs/enet-1.3.6/include",
 	}
 	libdirs {
 		"libs/SDL/lib",
 		"libs/FreeImage/lib",
+		"libs/enet-1.3.6",
 	}
     links {
 		"SDL",
 		"SDLmain",
-		"freeimage",	    
+		"freeimage",
+		"enet",
 	}
 	if platform == "win32" then
 		links {
