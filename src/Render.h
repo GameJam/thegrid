@@ -5,7 +5,7 @@
 
 struct Texture;
 
-void Render_Begin(int xSize, int ySize);
+void Render_Begin(int x, int y, int xSize, int ySize);
 void Render_End();
 
 /**

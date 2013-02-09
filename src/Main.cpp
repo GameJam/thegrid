@@ -6,6 +6,8 @@
 const int xSize = 1280;
 const int ySize = 800;
 
+int scale = 1;
+
 Texture mapTexture;
 Texture agentTexture;
 
@@ -41,6 +43,20 @@ bool ProcessEvents()
         case SDL_QUIT:
             return false;
 
+        case SDL_MOUSEBUTTONDOWN:
+            if (event.button.button == SDL_BUTTON_LEFT)
+            {
+                if (scale == 1)
+                {
+                    scale = 2;
+                }
+                else
+                {
+                    scale = 1;
+                }
+            }
+            break;
+
         }
     }
 
@@ -51,7 +67,7 @@ bool ProcessEvents()
 void Render()
 {
 
-    Render_Begin(xSize, ySize);
+    Render_Begin(0, 0, xSize * scale, ySize * scale);
 
     Render_DrawSprite(mapTexture, 0, 0);
     Render_DrawSprite(agentTexture, 50, 50);

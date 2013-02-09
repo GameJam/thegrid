@@ -3,14 +3,14 @@
 
 #include <GL/glu.h>
 
-void Render_Begin(int xSize, int ySize)
+void Render_Begin(int x, int y, int xSize, int ySize)
 {
     glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0, xSize, ySize, 0);
+    gluOrtho2D(x, x + xSize, y + ySize, y);
 
     glEnable(GL_TEXTURE_2D);    
     glEnable(GL_BLEND);
