@@ -1,4 +1,5 @@
 #include "ClientGame.h"
+#include "Log.h"
 
 #include <math.h>
 #include <assert.h>
@@ -20,7 +21,7 @@ static void DrawCircle(int x, int y, int radius)
     glEnd();
 }
 
-ClientGame::ClientGame(int xSize, int ySize)
+ClientGame::ClientGame(int xSize, int ySize) : m_host(1)
 {
     m_mapScale  = 1;
     m_xSize     = xSize;
@@ -28,6 +29,8 @@ ClientGame::ClientGame(int xSize, int ySize)
     m_state     = State_Idle;
     m_blipX     = 0;
     m_blipY     = 0;
+    m_serverId  = -1;
+
     CenterMap(xMapSize / 2, yMapSize / 2);
 }
 
@@ -184,6 +187,11 @@ void ClientGame::OnMouseDown(int x, int y, int button)
     if (button == 2)
     {
         ScreenToWorld(x, y, m_blipX, m_blipY);
+
+        Protocol::OrderPacket order;
+        order.x = m_blipY;
+        order.y = m_blipY;
+        SendOrder(order);
     }
 
     if (button == 3)
@@ -240,4 +248,46 @@ void ClientGame::CenterMap(int xWorld, int yWorld)
 {
     m_mapX = xWorld - (m_xSize / 2) * m_mapScale;
     m_mapY = yWorld - (m_ySize / 2) * m_mapScale;
+}
+
+void ClientGame::Connect(const char* hostName, int port)
+{
+    m_host.Connect(hostName, port);
+}
+
+void ClientGame::Update()
+{
+    m_host.Service(this);
+}
+
+void ClientGame::OnConnect(int peerId)
+{
+    m_serverId = peerId;    
+}
+
+void ClientGame::OnDisconnect(int peerId)
+{
+    m_serverId = -1;
+}
+
+void ClientGame::OnPacket(int peerId, int channel, void* data, size_t size)
+{
+    if (peerId == m_serverId)
+    {
+        LogMessage("Server says: %s", data);
+    }
+}
+
+void ClientGame::SendOrder(Protocol::OrderPacket& order)
+{
+
+    if (m_serverId == -1)
+    {
+        LogError("SendOrder: not connected to server");
+        return;
+    }
+
+    order.packetType = Protocol::PacketType_Order;
+    m_host.SendPacket(m_serverId, 0, &order, sizeof(Protocol::OrderPacket));
+
 }

@@ -78,9 +78,9 @@ void Host::Service(Handler* handler)
 
             case ENET_EVENT_TYPE_DISCONNECT:
                 {
-                    LogDebug("Client disconnected");
-                    
                     int peerId = static_cast<PeerData*>(event.peer->data)->m_id;
+
+                    LogDebug("Peer %i disconnected", peerId);
 
                     if (handler != NULL)
                     {

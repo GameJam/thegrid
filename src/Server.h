@@ -3,16 +3,23 @@
 
 #include "Host.h"
 
+#include "Protocol.h"
+
 #include <hash_map>
 
 class Server : public Host::Handler
 {
 public:
-    
+
+
     class Client
     {
     public:
         Client(int id);
+
+        void Update();
+
+        void OnOrder(const Protocol::OrderPacket& order);
 
     private:
         int m_id;
@@ -29,6 +36,8 @@ public:
 
 private:
     
+    Client* FindClient(int peerId);
+
     typedef stdext::hash_map<int, Client*> ClientMap;
 
     Host        m_host;

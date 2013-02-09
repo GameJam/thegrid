@@ -169,24 +169,25 @@ int main(int argc, char* argv[])
         server = new Server();
     }
 
-    ClientGame game(xSize, ySize);
-    
-    Client client;
-    client.Connect(hostName, 12345);
+    ClientGame* game = new ClientGame(xSize, ySize);    
 
-    game.LoadResources();
+    game->LoadResources();
+    game->Connect(hostName, 12345);
 
-    while (ProcessEvents(game))
+    while (ProcessEvents(*game))
     {
-        game.Render();
+        game->Update();
+        game->Render();
         SDL_GL_SwapBuffers();
         
         if (server)
         {
             server->Update();
         }
-        client.Update();
     }
+
+    delete game;
+    game = NULL;
 
     delete server;
     server = NULL;
