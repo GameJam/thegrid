@@ -7,6 +7,8 @@
 
 #include <SDL.h>
 
+#include <string>
+#include <hash_map>
 
 bool ProcessEvents(ClientGame& game)
 {
@@ -60,6 +62,54 @@ bool ProcessEvents(ClientGame& game)
 
 }
 
+typedef stdext::hash_map<std::string, std::string> Arguments;
+
+bool ParseArguments(int argc, char* argv[], Arguments& arguments)
+{
+
+    arguments.clear();
+    for (int i = 1; i + 1 < argc; i += 2)
+    {
+        const char* key = argv[i];
+        const char* value = argv[i + 1];
+        
+        if (key[0] != '-')
+        {
+            LogError("Expected key (prefixed with '-'): '%s'", key);
+            return false;
+        }
+
+        if (value[0] == '-')
+        {
+            LogError("Expected value, got key instead: '%s'", value);
+            return false;
+        }
+
+        arguments[key + 1] = value;
+    }
+
+    return true;
+
+}
+
+bool HasArgument(const Arguments& arguments, const char* key)
+{
+    return arguments.find(key) != arguments.end();
+}
+
+const char* GetArgument(const Arguments& arguments, const char* key)
+{
+
+    Arguments::const_iterator iter = arguments.find(key);
+    if (iter == arguments.end())
+    {
+        return NULL;
+    }
+
+    return iter->second.c_str();
+
+}
+
 int main(int argc, char* argv[])
 {
 
@@ -68,6 +118,12 @@ int main(int argc, char* argv[])
 
     Log::Initialize(Log::Severity_Debug);
     LogMessage("Initializing the grid...");
+
+    Arguments arguments;
+    if (!ParseArguments(argc, argv, arguments))
+    {
+        exit(EXIT_FAILURE);
+    }
 
     Host::Initialize();
 
@@ -100,11 +156,23 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
+
+    const char* hostName = "127.0.0.1";
+    Server* server = NULL;
+
+    if (HasArgument(arguments, "connect"))
+    {
+        hostName = GetArgument(arguments, "connect");
+    }
+    else
+    {
+        server = new Server();
+    }
+
     ClientGame game(xSize, ySize);
     
-    Server server;
     Client client;
-    client.Connect("127.0.0.1", 12345);
+    client.Connect(hostName, 12345);
 
     game.LoadResources();
 
@@ -112,9 +180,16 @@ int main(int argc, char* argv[])
     {
         game.Render();
         SDL_GL_SwapBuffers();
-        server.Update();
+        
+        if (server)
+        {
+            server->Update();
+        }
         client.Update();
     }
+
+    delete server;
+    server = NULL;
 
     Host::Shutdown();
     Log::Shutdown();
