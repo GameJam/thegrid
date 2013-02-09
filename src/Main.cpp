@@ -54,7 +54,7 @@ void Render()
     Render_Begin(xSize, ySize);
 
     Render_DrawSprite(mapTexture, 0, 0);
-    Render_DrawSprite(agentTexture, 0, 0);
+    Render_DrawSprite(agentTexture, 50, 50);
 
     Render_End();
 
@@ -64,8 +64,25 @@ void Render()
 
 void LoadResources()
 {
-    Texture_Load(mapTexture,   "assets/map_subway.jpg");
-    Texture_Load(agentTexture, "assets/agent.png");
+
+    struct TextureLoad
+    {
+        Texture*    texture;
+        const char* fileName;
+    };
+
+    TextureLoad load[] = 
+        { 
+            { &mapTexture,   "assets/map_subway.jpg"    },
+            { &agentTexture, "assets/agent.png"         },
+        };
+
+    int numTextures = sizeof(load) / sizeof(TextureLoad);
+    for (int i = 0; i < numTextures; ++i)
+    {   
+        Texture_Load(*load[i].texture, load[i].fileName);
+    }
+
 }
 
 int main(int argc, char* argv[])
