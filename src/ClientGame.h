@@ -4,7 +4,10 @@
 #include "Texture.h"
 #include "Map.h"
 
-class ClientGame
+#include "Host.h"
+#include "Protocol.h"
+
+class ClientGame : Host::Handler
 {
 
 public:
@@ -18,6 +21,14 @@ public:
     void OnMouseUp(int x, int y, int button);
     void OnMouseMove(int x, int y);
 
+    void Connect(const char* hostName, int port);
+
+    void Update();
+
+    virtual void OnConnect(int peerId);
+    virtual void OnDisconnect(int peerId);
+    virtual void OnPacket(int peerId, int channel, void* data, size_t size);
+
 private:
 
     void ScreenToWorld(int xScreen, int yScreen, int& xWorld, int& yWorld) const;
@@ -29,6 +40,8 @@ private:
     // Moves the map so that the specified world point is in the center of the
     // screen.
     void CenterMap(int xWorld, int yWorld);
+
+    void SendOrder(Protocol::OrderPacket& order);
 
 private:
 
@@ -55,6 +68,9 @@ private:
     int         m_blipY;
 
     Map         m_map;
+
+    Host        m_host;
+    int         m_serverId;
 
 };
 

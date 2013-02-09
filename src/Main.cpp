@@ -3,9 +3,12 @@
 #include "ClientGame.h"
 #include "Server.h"
 #include "Client.h"
+#include "Log.h"
 
 #include <SDL.h>
 
+#include <string>
+#include <hash_map>
 
 bool ProcessEvents(ClientGame& game)
 {
@@ -59,11 +62,68 @@ bool ProcessEvents(ClientGame& game)
 
 }
 
+typedef stdext::hash_map<std::string, std::string> Arguments;
+
+bool ParseArguments(int argc, char* argv[], Arguments& arguments)
+{
+
+    arguments.clear();
+    for (int i = 1; i + 1 < argc; i += 2)
+    {
+        const char* key = argv[i];
+        const char* value = argv[i + 1];
+        
+        if (key[0] != '-')
+        {
+            LogError("Expected key (prefixed with '-'): '%s'", key);
+            return false;
+        }
+
+        if (value[0] == '-')
+        {
+            LogError("Expected value, got key instead: '%s'", value);
+            return false;
+        }
+
+        arguments[key + 1] = value;
+    }
+
+    return true;
+
+}
+
+bool HasArgument(const Arguments& arguments, const char* key)
+{
+    return arguments.find(key) != arguments.end();
+}
+
+const char* GetArgument(const Arguments& arguments, const char* key)
+{
+
+    Arguments::const_iterator iter = arguments.find(key);
+    if (iter == arguments.end())
+    {
+        return NULL;
+    }
+
+    return iter->second.c_str();
+
+}
+
 int main(int argc, char* argv[])
 {
 
     const int xSize = 1280;
     const int ySize = 800;
+
+    Log::Initialize(Log::Severity_Debug);
+    LogMessage("Initializing the grid...");
+
+    Arguments arguments;
+    if (!ParseArguments(argc, argv, arguments))
+    {
+        exit(EXIT_FAILURE);
+    }
 
     Host::Initialize();
 
@@ -96,23 +156,44 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    ClientGame game(xSize, ySize);
-    
-    Server server;
-    Client client;
-    client.Connect("127.0.0.1", 12345);
 
-    game.LoadResources();
+    const char* hostName = "127.0.0.1";
+    Server* server = NULL;
 
-    while (ProcessEvents(game))
+    if (HasArgument(arguments, "connect"))
     {
-        game.Render();
-        SDL_GL_SwapBuffers();
-        server.Update();
-        client.Update();
+        hostName = GetArgument(arguments, "connect");
+    }
+    else
+    {
+        server = new Server();
     }
 
+    ClientGame* game = new ClientGame(xSize, ySize);    
+
+    game->LoadResources();
+    game->Connect(hostName, 12345);
+
+    while (ProcessEvents(*game))
+    {
+        game->Update();
+        game->Render();
+        SDL_GL_SwapBuffers();
+        
+        if (server)
+        {
+            server->Update();
+        }
+    }
+
+    delete game;
+    game = NULL;
+
+    delete server;
+    server = NULL;
+
     Host::Shutdown();
+    Log::Shutdown();
 
     return EXIT_SUCCESS;
 
