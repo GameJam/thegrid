@@ -54,6 +54,8 @@ void ClientGame::LoadResources()
         Texture_Load(*load[i].texture, load[i].fileName);
     }
 
+    Font_Load(m_font, "assets/font.csv");
+
     m_map.Generate(xMapSize, yMapSize, 3);
 
 }
@@ -76,6 +78,8 @@ void ClientGame::Render() const
 
     glClearColor( 0.97f, 0.96f, 0.89f, 0.0f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+    glDisable(GL_TEXTURE_2D);
 
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
@@ -161,14 +165,18 @@ void ClientGame::Render() const
     glEnable(GL_TEXTURE_2D);    
 
     glColor(0xFFFFFFFF);
-    //Render_DrawSprite(m_mapTexture, 0, 0);
 
     for (size_t i = 0; i < m_testState.m_test.size(); ++i)
     {
         Render_DrawSprite(m_agentTexture, m_testState.m_test[i].x, m_testState.m_test[i].y);
     }
 
-    glDisable(GL_TEXTURE_2D);
+    Font_BeginDrawing(m_font, m_xSize, m_ySize);
+
+    glColor(0xFF000000);
+    Font_DrawText("Hello!", 10, 10);
+
+    Font_EndDrawing();
 
 }
 

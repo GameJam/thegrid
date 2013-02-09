@@ -2,6 +2,7 @@
 #define GAME_CLIENT_GAME_H
 
 #include "Texture.h"
+#include "Font.h"
 #include "Map.h"
 
 #include "Host.h"
@@ -64,6 +65,7 @@ private:
     int         m_stateY;
 
     Texture     m_agentTexture;
+    Font        m_font;
 
     int         m_blipX;
     int         m_blipY;
