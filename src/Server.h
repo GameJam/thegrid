@@ -53,6 +53,8 @@ private:
 
     Host        m_host;
     ClientMap   m_clientMap;
+    
+    int         m_mapSeed;
 
 };
 

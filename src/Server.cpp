@@ -73,6 +73,8 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
 Server::Server() : m_host(1)
 {
     m_host.Listen(12345);
+
+    m_mapSeed = 42;
 }
 
 Server::~Server()
@@ -99,7 +101,11 @@ void Server::Update()
 void Server::OnConnect(int peerId)
 {
     m_clientMap[peerId] = new Client(peerId);
-    // m_host.SendPacket(peerId, 0, "Hello", sizeof("Hello") + 1);
+
+    Protocol::InitializeGamePacket initializeGame;
+    initializeGame.packetType = Protocol::PacketType_InitializeGame;
+    initializeGame.mapSeed = m_mapSeed;
+    m_host.SendPacket(peerId, 0, &initializeGame, sizeof(Protocol::InitializeGamePacket));
 }
 
 void Server::OnDisconnect(int peerId)
