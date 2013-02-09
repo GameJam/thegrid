@@ -56,8 +56,6 @@ void ClientGame::LoadResources()
 
     Font_Load(m_font, "assets/font.csv");
 
-    m_map.Generate(xMapSize, yMapSize, 3);
-
 }
 
 void ClientGame::Render() const
@@ -297,6 +295,13 @@ void ClientGame::OnPacket(int peerId, int channel, void* data, size_t size)
         
         switch (packetType)
         {
+        case Protocol::PacketType_InitializeGame:
+            {
+                Protocol::InitializeGamePacket* packet = static_cast<Protocol::InitializeGamePacket*>(data);
+                OnInitializeGame(*packet);
+            }
+            break;
+
         case Protocol::PacketType_State:
             {
                 Protocol::StatePacket* packet = static_cast<Protocol::StatePacket*>(data);
@@ -322,4 +327,10 @@ void ClientGame::SendOrder(Protocol::OrderPacket& order)
     order.packetType = Protocol::PacketType_Order;
     m_host.SendPacket(m_serverId, 0, &order, sizeof(Protocol::OrderPacket));
 
+}
+
+void ClientGame::OnInitializeGame(Protocol::InitializeGamePacket& packet)
+{
+    LogDebug("Initializing game with seed %i", packet.mapSeed);
+    m_map.Generate(xMapSize, yMapSize, packet.mapSeed);
 }

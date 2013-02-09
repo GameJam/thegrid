@@ -2,7 +2,6 @@
 #include "Texture.h"
 #include "ClientGame.h"
 #include "Server.h"
-#include "Client.h"
 #include "Log.h"
 
 #include <SDL.h>

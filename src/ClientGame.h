@@ -45,6 +45,8 @@ private:
 
     void SendOrder(Protocol::OrderPacket& order);
 
+    void OnInitializeGame(Protocol::InitializeGamePacket& packet);
+
 private:
 
     enum State

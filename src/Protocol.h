@@ -6,8 +6,15 @@ namespace Protocol
 
 enum PacketType
 {
+    PacketType_InitializeGame,
     PacketType_Order,
     PacketType_State
+};
+
+struct InitializeGamePacket
+{
+    char packetType;
+    int mapSeed;
 };
 
 struct OrderPacket
