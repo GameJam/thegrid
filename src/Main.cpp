@@ -7,6 +7,7 @@ const int xSize = 1280;
 const int ySize = 800;
 
 Texture mapTexture;
+Texture agentTexture;
 
 bool ProcessEvents()
 {
@@ -53,6 +54,7 @@ void Render()
     Render_Begin(xSize, ySize);
 
     Render_DrawSprite(mapTexture, 0, 0);
+    Render_DrawSprite(agentTexture, 0, 0);
 
     Render_End();
 
@@ -62,7 +64,8 @@ void Render()
 
 void LoadResources()
 {
-    Texture_Load(mapTexture, "assets/map_subway.jpg");
+    Texture_Load(mapTexture,   "assets/map_subway.jpg");
+    Texture_Load(agentTexture, "assets/agent.png");
 }
 
 int main(int argc, char* argv[])

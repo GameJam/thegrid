@@ -12,14 +12,14 @@ void Render_Begin(int xSize, int ySize)
     glLoadIdentity();
     gluOrtho2D(0, xSize, ySize, 0);
 
-    glEnable(GL_TEXTURE_2D);
-    glBegin(GL_QUADS);
+    glEnable(GL_TEXTURE_2D);    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 }
 
 void Render_End()
 {
-    glEnd();
 }
 
 GLuint Render_CreateTexture(int xSize, int ySize, const void* buffer, int mipMap)
@@ -56,6 +56,7 @@ void Render_DrawSprite(const Texture& texture, int x, int y)
 {
 
     glBindTexture( GL_TEXTURE_2D, texture.handle );
+    glBegin(GL_QUADS);
 
     glTexCoord2f(0, 0);
     glVertex2i(x, y);
@@ -68,5 +69,7 @@ void Render_DrawSprite(const Texture& texture, int x, int y)
 
     glTexCoord2f(0, 1);
     glVertex2i(x, y + texture.ySize);
+
+    glEnd();
 
 }
