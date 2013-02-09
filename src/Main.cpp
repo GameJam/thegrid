@@ -3,6 +3,7 @@
 #include "ClientGame.h"
 #include "Server.h"
 #include "Client.h"
+#include "Log.h"
 
 #include <SDL.h>
 
@@ -65,6 +66,9 @@ int main(int argc, char* argv[])
     const int xSize = 1280;
     const int ySize = 800;
 
+    Log::Initialize(Log::Severity_Debug);
+    LogMessage("Initializing the grid...");
+
     Host::Initialize();
 
     if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0 )
@@ -113,6 +117,7 @@ int main(int argc, char* argv[])
     }
 
     Host::Shutdown();
+    Log::Shutdown();
 
     return EXIT_SUCCESS;
 

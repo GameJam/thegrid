@@ -1,4 +1,5 @@
 #include "Host.h"
+#include "Log.h"
 
 #include <enet/enet.h>
 
@@ -59,8 +60,8 @@ void Host::Service(Handler* handler)
             {
             case ENET_EVENT_TYPE_CONNECT:
                 {
-                    printf("Client connected from %x:%u.\n", 
-                           event.peer->address.host, event.peer->address.port);
+                    LogDebug("Client connected from %x:%u", 
+                             event.peer->address.host, event.peer->address.port);
 
                     int peerId = m_nextPeerId;
                     ++m_nextPeerId;
@@ -77,7 +78,7 @@ void Host::Service(Handler* handler)
 
             case ENET_EVENT_TYPE_DISCONNECT:
                 {
-                    printf("Client disconnected\n");
+                    LogDebug("Client disconnected");
                     
                     int peerId = static_cast<PeerData*>(event.peer->data)->m_id;
 
@@ -135,7 +136,7 @@ bool Host::Listen(int port)
 
     if (m_data->m_host == NULL)
     {
-        printf("Failed to bind to port %d!\n", port);
+        LogError("Failed to bind to port %d!", port);
         return false;
     }
     else
@@ -153,14 +154,14 @@ bool Host::Connect(const char* hostName, int port)
     m_data->m_host = enet_host_create(NULL, 1, m_numChannels, 0, 0);
     if (m_data->m_host == NULL)
     {
-        printf("Failed to create host!\n");
+        LogError("Failed to create host!");
         return false;
     }
 
     ENetAddress address;
     if (enet_address_set_host(&address, hostName) != 0)
     {
-        printf("Failed to set host!\n");
+        LogError("Failed to set host!");
         Destroy();
         return false;
     }
@@ -169,7 +170,7 @@ bool Host::Connect(const char* hostName, int port)
     ENetPeer* peer = enet_host_connect(m_data->m_host, &address, m_numChannels, 0);
     if (peer == NULL)
     {
-        printf("Failed to connect!\n");
+        LogError("Failed to connect!");
         Destroy();
         return false;
     }

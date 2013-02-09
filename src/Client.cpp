@@ -1,4 +1,5 @@
 #include "Client.h"
+#include "Log.h"
 
 #include <stdio.h>
 
@@ -31,6 +32,6 @@ void Client::OnPacket(int peerId, int channel, void* data, size_t size)
 {
     if (peerId == m_serverId)
     {
-        printf("Server says: %s", data);
+        LogMessage("Server says: %s", data);
     }
 }
