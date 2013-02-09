@@ -30,6 +30,7 @@ ClientGame::ClientGame(int xSize, int ySize) : m_host(1)
     m_blipX     = 0;
     m_blipY     = 0;
     m_serverId  = -1;
+    m_hoverStop = -1;
 
     CenterMap(xMapSize / 2, yMapSize / 2);
 }
@@ -76,6 +77,14 @@ void ClientGame::Render() const
 
     glClearColor( 0.97f, 0.96f, 0.89f, 0.0f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+    //glEnable(GL_MULTISAMPLE);
+
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST );
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+ 
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_POLYGON_SMOOTH);
 
     glDisable(GL_TEXTURE_2D);
 
@@ -146,17 +155,23 @@ void ClientGame::Render() const
     for (int i = 0; i < m_map.GetNumStops(); ++i)
     {
         const Stop& stop = m_map.GetStop(i);
+
+        float inflate = 0.0f;
+        if (i == m_hoverStop)
+        {
+            inflate = 5.0f;
+        }
         if (stop.line == -1)
         {
             glColor( 0xFF000000 );
-            DrawCircle(stop.point, 8);
+            DrawCircle(stop.point, 8 + inflate);
             glColor( 0xFFFFFFFF );
-            DrawCircle(stop.point, 6);
+            DrawCircle(stop.point, 6 + inflate);
         }
         else
         {
             glColor( lineColor[stop.line % numLines] );
-            DrawCircle(stop.point, 8);
+            DrawCircle(stop.point, 8 + inflate);
         }
     }
 
@@ -238,6 +253,12 @@ void ClientGame::OnMouseMove(int x, int y)
         m_mapY += yDelta * m_mapScale;
         m_stateX = x;
         m_stateY = y;
+    }
+    else
+    {
+        int xWorld, yWorld;
+        ScreenToWorld(x, y, xWorld, yWorld);
+        m_hoverStop = m_map.GetStopForPoint( Vec2(xWorld, yWorld) );
     }
 }
 

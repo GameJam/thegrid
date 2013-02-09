@@ -36,6 +36,8 @@ public:
     int         GetNumRails() const { return m_numRails; }
     const Rail& GetRail(int i) const { return m_rail[i]; }
 
+    int GetStopForPoint(const Vec2& point);
+
 private:
 
     int  AddStop(const Vec2& point, int line, bool terminal = false);

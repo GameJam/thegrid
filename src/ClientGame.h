@@ -78,6 +78,8 @@ private:
     int         m_serverId;
     ClientWorldState    m_testState;
 
+    int         m_hoverStop;
+
 };
 
 #endif

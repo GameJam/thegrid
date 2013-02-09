@@ -306,3 +306,18 @@ void Map::EnforceRailConstraint(Rail& rail) const
         Swap(rail.stop1, rail.stop2);
     }
 }
+
+int Map::GetStopForPoint(const Vec2& point)
+{
+    float distance = 10.0f;
+    float d2 = distance * distance;
+    for (int i = 0; i < m_numStops; ++i)
+    {
+        Vec2 offset = m_stop[i].point - point;
+        if (DotProduct(offset, offset) < d2)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
