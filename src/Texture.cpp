@@ -73,6 +73,32 @@ bool Texture_LoadFromMemory(Texture& texture, const void* buffer, size_t bufferL
         free(pixel);
 
     }
+    else if (bpp == 24)
+    {
+
+        unsigned char* pixel = (unsigned char*)malloc( 4 * xSize * ySize );
+
+        for (int y = 0; y < ySize; ++y)
+        {
+
+            BYTE* scanline;
+            scanline = FreeImage_GetScanLine(bitmap, ySize - y - 1);
+
+            for (int x = 0; x < xSize; ++x)
+            {
+                pixel[ (x + y * xSize) * 4 + 0 ] = scanline[x * 3 + FI_RGBA_RED];
+                pixel[ (x + y * xSize) * 4 + 1 ] = scanline[x * 3 + FI_RGBA_GREEN];
+                pixel[ (x + y * xSize) * 4 + 2 ] = scanline[x * 3 + FI_RGBA_BLUE];
+                pixel[ (x + y * xSize) * 4 + 3 ] = 0xFF;
+            }
+            
+        }
+
+        texture.handle = Render_CreateTexture(xSize, ySize, pixel, 0);
+        free(pixel);
+
+
+    }
 
     texture.xSize = xSize;
     texture.ySize = ySize;

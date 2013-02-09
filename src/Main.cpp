@@ -1,4 +1,12 @@
+#include "Render.h"
+#include "Texture.h"
+
 #include <SDL.h>
+
+const int xSize = 1280;
+const int ySize = 800;
+
+Texture mapTexture;
 
 bool ProcessEvents()
 {
@@ -39,11 +47,26 @@ bool ProcessEvents()
 
 }
 
-int main(int argc, char* argv[])
+void Render()
 {
 
-    const int xSize = 1280;
-    const int ySize = 800;
+    Render_Begin(xSize, ySize);
+
+    Render_DrawSprite(mapTexture, 0, 0);
+
+    Render_End();
+
+    SDL_GL_SwapBuffers();
+
+}
+
+void LoadResources()
+{
+    Texture_Load(mapTexture, "assets/map_subway.jpg");
+}
+
+int main(int argc, char* argv[])
+{
 
     if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0 )
     {
@@ -76,11 +99,11 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
+    LoadResources();
+
     while (ProcessEvents())
     {
-
-
-
+        Render();
     }
 
     return EXIT_SUCCESS;

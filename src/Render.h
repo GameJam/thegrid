@@ -3,9 +3,16 @@
 
 #include "OpenGL.h"
 
+struct Texture;
+
+void Render_Begin(int xSize, int ySize);
+void Render_End();
+
 /**
  * Creates a new texture from the RGBA pixel data.
  */
 GLuint Render_CreateTexture(int xSize, int ySize, const void* buffer, int mipMap);
+
+void Render_DrawSprite(const Texture& texture, int x, int y);
 
 #endif

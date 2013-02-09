@@ -1,6 +1,23 @@
 #include "Render.h"
+#include "Texture.h"
 
 #include <GL/glu.h>
+
+void Render_Begin(int xSize, int ySize)
+{
+    glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, xSize, ySize, 0);
+
+    glEnable(GL_TEXTURE_2D);
+}
+
+void Render_End()
+{
+}
 
 GLuint Render_CreateTexture(int xSize, int ySize, const void* buffer, int mipMap)
 {
@@ -29,5 +46,28 @@ GLuint Render_CreateTexture(int xSize, int ySize, const void* buffer, int mipMap
     }
 
     return textureId;
+
+}
+
+void Render_DrawSprite(const Texture& texture, int x, int y)
+{
+
+    glBindTexture( GL_TEXTURE_2D, texture.handle );
+
+    glBegin(GL_QUADS);
+
+    glTexCoord2f(0, 0);
+    glVertex2f(x, y);
+
+    glTexCoord2f(1, 0);
+    glVertex2f(x + texture.xSize, y);
+
+    glTexCoord2f(1, 1);
+    glVertex2f(x + texture.xSize, y + texture.ySize);
+
+    glTexCoord2f(0, 1);
+    glVertex2f(x, y + texture.ySize);
+
+    glEnd();
 
 }
