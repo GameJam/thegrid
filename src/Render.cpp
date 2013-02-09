@@ -57,16 +57,16 @@ void Render_DrawSprite(const Texture& texture, int x, int y)
     glBegin(GL_QUADS);
 
     glTexCoord2f(0, 0);
-    glVertex2f(x, y);
+    glVertex2i(x, y);
 
     glTexCoord2f(1, 0);
-    glVertex2f(x + texture.xSize, y);
+    glVertex2i(x + texture.xSize, y);
 
     glTexCoord2f(1, 1);
-    glVertex2f(x + texture.xSize, y + texture.ySize);
+    glVertex2i(x + texture.xSize, y + texture.ySize);
 
     glTexCoord2f(0, 1);
-    glVertex2f(x, y + texture.ySize);
+    glVertex2i(x, y + texture.ySize);
 
     glEnd();
 
