@@ -5,5 +5,8 @@
 #include <windows.h>
 #endif
 #include <GL/gl.h>
+#include <GL/glu.h>
+
+void glColor(unsigned long color);
 
 #endif

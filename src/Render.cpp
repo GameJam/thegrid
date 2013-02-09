@@ -1,27 +1,6 @@
 #include "Render.h"
 #include "Texture.h"
 
-#include <GL/glu.h>
-
-void Render_Begin(int x, int y, int xSize, int ySize)
-{
-    glClearColor( 1.0f, 1.0f, 1.0f, 0.0f );
-    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(x, x + xSize, y + ySize, y);
-
-    glEnable(GL_TEXTURE_2D);    
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-}
-
-void Render_End()
-{
-}
-
 GLuint Render_CreateTexture(int xSize, int ySize, const void* buffer, int mipMap)
 {
 

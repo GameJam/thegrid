@@ -2,6 +2,7 @@
 #define GAME_CLIENT_GAME_H
 
 #include "Texture.h"
+#include "Map.h"
 
 class ClientGame
 {
@@ -24,6 +25,10 @@ private:
     // Sets the zoom for the map and adjusts the panning so the specified point
     // stays in the same place on the screen.
     void SetMapScale(int scale, int xScreen, int yScreen);
+
+    // Moves the map so that the specified world point is in the center of the
+    // screen.
+    void CenterMap(int xWorld, int yWorld);
 
 private:
 
@@ -49,6 +54,8 @@ private:
 
     int         m_blipX;
     int         m_blipY;
+
+    Map         m_map;
 
 };
 

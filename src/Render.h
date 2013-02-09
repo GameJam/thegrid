@@ -5,9 +5,6 @@
 
 struct Texture;
 
-void Render_Begin(int x, int y, int xSize, int ySize);
-void Render_End();
-
 /**
  * Creates a new texture from the RGBA pixel data.
  */
