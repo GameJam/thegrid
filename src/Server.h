@@ -4,6 +4,7 @@
 #include "Host.h"
 
 #include "Protocol.h"
+#include "ClientWorldState.h"
 
 #include <hash_map>
 
@@ -17,13 +18,20 @@ public:
     public:
         Client(int id);
 
-        void Update();
+        int GetId() const;
+
+        void Update(Server& server);
 
         void OnOrder(const Protocol::OrderPacket& order);
 
+        void GetTest(int& x, int& y);
+
     private:
         int m_id;
+        ClientWorldState m_state;
     };
+
+    typedef std::vector<Client*> ClientList;
 
     Server();
     virtual ~Server();
@@ -33,6 +41,9 @@ public:
     virtual void OnConnect(int peerId);
     virtual void OnDisconnect(int peerId);
     virtual void OnPacket(int peerId, int channel, void* data, size_t size);
+
+    Host& GetHost();
+    void GetClients(ClientList& clients);
 
 private:
     

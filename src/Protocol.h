@@ -6,7 +6,8 @@ namespace Protocol
 
 enum PacketType
 {
-    PacketType_Order
+    PacketType_Order,
+    PacketType_State
 };
 
 struct OrderPacket
@@ -14,6 +15,12 @@ struct OrderPacket
     char packetType;
     int agentId;
     int x, y;
+};
+
+struct StatePacket
+{
+    char packetType;
+    char data[1];
 };
 
 }

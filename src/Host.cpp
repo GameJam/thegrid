@@ -60,7 +60,7 @@ void Host::Service(Handler* handler)
             {
             case ENET_EVENT_TYPE_CONNECT:
                 {
-                    LogDebug("Client connected from %x:%u", 
+                    LogDebug("Peer connected from %x:%u", 
                              event.peer->address.host, event.peer->address.port);
 
                     int peerId = m_nextPeerId;

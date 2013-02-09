@@ -161,7 +161,12 @@ void ClientGame::Render() const
     glEnable(GL_TEXTURE_2D);    
 
     glColor(0xFFFFFFFF);
-    Render_DrawSprite(m_agentTexture, m_blipX, m_blipY);
+    //Render_DrawSprite(m_mapTexture, 0, 0);
+
+    for (size_t i = 0; i < m_testState.m_test.size(); ++i)
+    {
+        Render_DrawSprite(m_agentTexture, m_testState.m_test[i].x, m_testState.m_test[i].y);
+    }
 
     glDisable(GL_TEXTURE_2D);
 
@@ -184,11 +189,12 @@ void ClientGame::OnMouseDown(int x, int y, int button)
 
     if (button == 2)
     {
-        ScreenToWorld(x, y, m_blipX, m_blipY);
+        int blipX, blipY;
+        ScreenToWorld(x, y, blipX, blipY);
 
         Protocol::OrderPacket order;
-        order.x = m_blipY;
-        order.y = m_blipY;
+        order.x = blipX;
+        order.y = blipY;
         SendOrder(order);
     }
 
@@ -256,6 +262,12 @@ void ClientGame::Connect(const char* hostName, int port)
 void ClientGame::Update()
 {
     m_host.Service(this);
+
+    if (m_testState.m_id != -1)
+    {
+        m_blipX = m_testState.m_test[m_testState.m_id].x;
+        m_blipY = m_testState.m_test[m_testState.m_id].y;
+    }
 }
 
 void ClientGame::OnConnect(int peerId)
@@ -272,7 +284,21 @@ void ClientGame::OnPacket(int peerId, int channel, void* data, size_t size)
 {
     if (peerId == m_serverId)
     {
-        LogMessage("Server says: %s", data);
+        char* byteData = static_cast<char*>(data);
+        Protocol::PacketType packetType = static_cast<Protocol::PacketType>(*byteData);
+        
+        switch (packetType)
+        {
+        case Protocol::PacketType_State:
+            {
+                Protocol::StatePacket* packet = static_cast<Protocol::StatePacket*>(data);
+                m_testState.Deserialize(packet->data);
+            }
+            break;
+
+        default:
+            LogDebug("Unrecognized packet: %i", packetType);
+        }        
     }
 }
 

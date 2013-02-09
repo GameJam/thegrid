@@ -6,6 +6,7 @@
 
 #include "Host.h"
 #include "Protocol.h"
+#include "ClientWorldState.h"
 
 class ClientGame : Host::Handler
 {
@@ -71,6 +72,7 @@ private:
 
     Host        m_host;
     int         m_serverId;
+    ClientWorldState    m_testState;
 
 };
 
