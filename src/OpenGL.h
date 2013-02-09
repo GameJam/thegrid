@@ -7,6 +7,9 @@
 #include <GL/gl.h>
 #include <GL/glu.h>
 
+#include "Vec2.h"
+
 void glColor(unsigned long color);
+inline void glVertex(const Vec2& point) { glVertex2f(point.x, point.y); }
 
 #endif

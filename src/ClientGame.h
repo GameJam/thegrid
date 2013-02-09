@@ -49,7 +49,6 @@ private:
     int         m_stateX;
     int         m_stateY;
 
-    Texture     m_mapTexture;
     Texture     m_agentTexture;
 
     int         m_blipX;

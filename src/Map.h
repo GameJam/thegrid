@@ -1,12 +1,13 @@
 #ifndef GAME_MAP_H
 #define GAME_MAP_H
 
+#include "Vec2.h"
+
 class Random;
 
 struct Stop
 {
-    int     x;
-    int     y;
+    Vec2    point;
     int     line; // -1 means a hub
     bool    terminal; // End of the line buddy
 };
@@ -35,8 +36,8 @@ public:
 
 private:
 
-    int  AddStop(int x, int y, int line, bool terminal = false);
-    int  MergeStop(int x, int y, int line, int distance);
+    int  AddStop(const Vec2& point, int line, bool terminal = false);
+    int  MergeStop(const Vec2& point, int line, float distance);
 
     void Connect(int stop1, int stop2, int line);
 

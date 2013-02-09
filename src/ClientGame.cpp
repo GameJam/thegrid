@@ -7,15 +7,15 @@ const int gridSpacing = 150;
 const int xMapSize = gridSpacing * 9;
 const int yMapSize = gridSpacing * 6;
 
-static void DrawCircle(int x, int y, int radius)
+static void DrawCircle(const Vec2& point, int radius)
 {
     const int numSides = 16;
     glBegin(GL_TRIANGLE_FAN);
     for (int j = 0; j < numSides; ++j)
     {
-        float xx = x + cosf((2.0f * j * 3.14159265f) / (numSides - 1)) * radius;
-        float yy = y + sinf((2.0f * j * 3.14159265f) / (numSides - 1)) * radius;
-        glVertex2f(xx, yy);
+        float x = point.x + cosf((2.0f * j * 3.14159265f) / (numSides - 1)) * radius;
+        float y = point.y + sinf((2.0f * j * 3.14159265f) / (numSides - 1)) * radius;
+        glVertex2f(x, y);
     }
     glEnd();
 }
@@ -42,7 +42,6 @@ void ClientGame::LoadResources()
 
     TextureLoad load[] = 
         { 
-            { &m_mapTexture,   "assets/map_subway.jpg"    },
             { &m_agentTexture, "assets/agent.png"         },
         };
 
@@ -133,8 +132,8 @@ void ClientGame::Render() const
         const Stop& stop2 = m_map.GetStop(rail.stop2);
         assert(rail.line >= 0);
         glColor( lineColor[rail.line % numLines] );
-        glVertex2i(stop1.x, stop1.y);
-        glVertex2i(stop2.x, stop2.y);
+        glVertex(stop1.point);
+        glVertex(stop2.point);
     }
     glEnd();
 
@@ -145,21 +144,20 @@ void ClientGame::Render() const
         if (stop.line == -1)
         {
             glColor( 0xFF000000 );
-            DrawCircle(stop.x, stop.y, 8);
+            DrawCircle(stop.point, 8);
             glColor( 0xFFFFFFFF );
-            DrawCircle(stop.x, stop.y, 6);
+            DrawCircle(stop.point, 6);
         }
         else
         {
             glColor( lineColor[stop.line % numLines] );
-            DrawCircle(stop.x, stop.y, 8);
+            DrawCircle(stop.point, 8);
         }
     }
 
     glEnable(GL_TEXTURE_2D);    
 
     glColor(0xFFFFFFFF);
-    //Render_DrawSprite(m_mapTexture, 0, 0);
     Render_DrawSprite(m_agentTexture, m_blipX, m_blipY);
 
     glDisable(GL_TEXTURE_2D);
