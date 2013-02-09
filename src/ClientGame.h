@@ -19,6 +19,14 @@ public:
 
 private:
 
+    void ScreenToWorld(int xScreen, int yScreen, int& xWorld, int& yWorld) const;
+
+    // Sets the zoom for the map and adjusts the panning so the specified point
+    // stays in the same place on the screen.
+    void SetMapScale(int scale, int xScreen, int yScreen);
+
+private:
+
     enum State
     {
         State_Idle,
@@ -38,6 +46,9 @@ private:
 
     Texture     m_mapTexture;
     Texture     m_agentTexture;
+
+    int         m_blipX;
+    int         m_blipY;
 
 };
 

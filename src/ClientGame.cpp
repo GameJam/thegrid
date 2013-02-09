@@ -8,6 +8,8 @@ ClientGame::ClientGame(int xSize, int ySize)
     m_xSize     = xSize;
     m_ySize     = ySize;
     m_state     = State_Idle;
+    m_blipX     = 0;
+    m_blipY     = 0;
 }
 
 void ClientGame::LoadResources()
@@ -39,7 +41,7 @@ void ClientGame::Render() const
     Render_Begin(m_mapX, m_mapY, m_xSize * m_mapScale, m_ySize * m_mapScale);
 
     Render_DrawSprite(m_mapTexture, 0, 0);
-    Render_DrawSprite(m_agentTexture, 50, 50);
+    Render_DrawSprite(m_agentTexture, m_blipX, m_blipY);
 
     Render_End();
 
@@ -52,16 +54,22 @@ void ClientGame::OnMouseDown(int x, int y, int button)
         // Toggle zoom on left click.
         if (m_mapScale == 1)
         {
-            m_mapScale = 2;
+            SetMapScale(2, x, y);
         }
         else
         {
-            m_mapScale = 1;
+            SetMapScale(1, x, y);
         }
+    }
+
+    if (button == 2)
+    {
+        ScreenToWorld(x, y, m_blipX, m_blipY);
     }
 
     if (button == 3)
     {
+        // Pan with right mouse button.
         if (m_state == State_Idle)
         {
             m_state = State_Panning;
@@ -94,4 +102,17 @@ void ClientGame::OnMouseMove(int x, int y)
         m_stateX = x;
         m_stateY = y;
     }
+}
+
+void ClientGame::ScreenToWorld(int xScreen, int yScreen, int& xWorld, int& yWorld) const
+{
+    xWorld = xScreen * m_mapScale + m_mapX;
+    yWorld = yScreen * m_mapScale + m_mapY;
+}
+
+void ClientGame::SetMapScale(int scale, int xScreen, int yScreen)
+{
+    m_mapX = xScreen * m_mapScale + m_mapX - xScreen * scale;
+    m_mapY = yScreen * m_mapScale + m_mapY - yScreen * scale;
+    m_mapScale = scale;
 }
