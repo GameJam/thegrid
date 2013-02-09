@@ -40,6 +40,15 @@ bool ProcessEvents(ClientGame& game)
             game.OnMouseDown(event.button.x, event.button.y, event.button.button);
             break;
 
+        case SDL_MOUSEBUTTONUP:
+            game.OnMouseUp(event.button.x, event.button.y, event.button.button);
+            break;
+
+        case SDL_MOUSEMOTION:
+            game.OnMouseMove(event.motion.x, event.motion.y);
+            break;
+
+
         }
     }
 

@@ -7,6 +7,7 @@ ClientGame::ClientGame(int xSize, int ySize)
     m_mapY      = 0;
     m_xSize     = xSize;
     m_ySize     = ySize;
+    m_state     = State_Idle;
 }
 
 void ClientGame::LoadResources()
@@ -35,7 +36,7 @@ void ClientGame::LoadResources()
 void ClientGame::Render() const
 {
 
-    Render_Begin(0, 0, m_xSize * m_mapScale, m_ySize * m_mapScale);
+    Render_Begin(m_mapX, m_mapY, m_xSize * m_mapScale, m_ySize * m_mapScale);
 
     Render_DrawSprite(m_mapTexture, 0, 0);
     Render_DrawSprite(m_agentTexture, 50, 50);
@@ -46,12 +47,51 @@ void ClientGame::Render() const
 
 void ClientGame::OnMouseDown(int x, int y, int button)
 {
-    if (m_mapScale == 1)
+    if (button == 1)
     {
-        m_mapScale = 2;
+        // Toggle zoom on left click.
+        if (m_mapScale == 1)
+        {
+            m_mapScale = 2;
+        }
+        else
+        {
+            m_mapScale = 1;
+        }
     }
-    else
+
+    if (button == 3)
     {
-        m_mapScale = 1;
+        if (m_state == State_Idle)
+        {
+            m_state = State_Panning;
+            m_stateX = x;
+            m_stateY = y;
+        }
+    }
+
+}
+
+void ClientGame::OnMouseUp(int x, int y, int button)
+{
+    if (button == 3)
+    {
+        if (m_state == State_Panning)
+        {
+            m_state = State_Idle;
+        }
+    }
+}
+
+void ClientGame::OnMouseMove(int x, int y)
+{
+    if (m_state == State_Panning)
+    {
+        int xDelta = m_stateX - x;
+        int yDelta = m_stateY - y;
+        m_mapX += xDelta * m_mapScale;
+        m_mapY += yDelta * m_mapScale;
+        m_stateX = x;
+        m_stateY = y;
     }
 }
