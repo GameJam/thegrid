@@ -96,16 +96,11 @@ int Font_Load(Font& font, const char* fileName)
 
 }
 
-void Font_BeginDrawing(const Font& font, int xSize, int ySize)
+void Font_BeginDrawing(const Font& font)
 {
 
     assert(g_font == NULL);
     g_font = &font;
-
-    glMatrixMode(GL_PROJECTION);
-    glPushMatrix();
-    glLoadIdentity();
-    gluOrtho2D(0.0f, xSize, ySize, 0.0f);
 
     glEnable(GL_TEXTURE_2D);
     glBindTexture(GL_TEXTURE_2D, font.texture.handle);
@@ -117,16 +112,8 @@ void Font_BeginDrawing(const Font& font, int xSize, int ySize)
 
 void Font_EndDrawing()
 {
-    
     assert(g_font != NULL);
-
-    glMatrixMode(GL_PROJECTION);
-    glPopMatrix();
-
-    glDisable(GL_BLEND);
-
     g_font = NULL;
-
 }
 
 int Font_DrawText(const char* text, int x, int y)
@@ -185,7 +172,7 @@ int Font_DrawText(const char* text, int x, int y)
 
 }
 
-int Font_GetTextWidth(Font* font, const char* text)
+int Font_GetTextWidth(const Font& font, const char* text)
 {
 
     int width = 0;
@@ -193,7 +180,7 @@ int Font_GetTextWidth(Font* font, const char* text)
     while (text[0] != 0)
     {
         int charIndex = (unsigned char)text[0];
-        width += font->charWidth[charIndex];
+        width += font.charWidth[charIndex];
         ++text;
     }
 
@@ -201,7 +188,7 @@ int Font_GetTextWidth(Font* font, const char* text)
 
 }
 
-int Font_GetTextHeight(Font* font)
+int Font_GetTextHeight(const Font& font)
 {
-    return font->fontHeight;
+    return font.fontHeight;
 }

@@ -175,21 +175,35 @@ void ClientGame::Render() const
         }
     }
 
-    glEnable(GL_TEXTURE_2D);    
+    // Draw the legend of the grid.
+    Font_BeginDrawing(m_font);
+    glColor(0xFF7FD6F2);
+    int fontHeight = Font_GetTextHeight(m_font);
+    for (int x = 0; x < xMapSize / gridSpacing; ++x)
+    {
+        char buffer[32];
+        sprintf(buffer, "%d", x);
+        int textWidth = Font_GetTextWidth(m_font, buffer);
+        Font_DrawText(buffer, x * gridSpacing + gridSpacing / 2 - textWidth / 2, -outerBorder + 5);
+        Font_DrawText(buffer, x * gridSpacing + gridSpacing / 2 - textWidth / 2, yMapSize + 5);
+    }
+    for (int y = 0; y < yMapSize / gridSpacing; ++y)
+    {
+        char buffer[32];
+        sprintf(buffer, "%c", 'A' + y);
+        Font_DrawText(buffer, -outerBorder + 10, y * gridSpacing + gridSpacing / 2 - fontHeight / 2);
+        Font_DrawText(buffer, xMapSize + 10, y * gridSpacing + gridSpacing / 2 - fontHeight / 2);
+    }
+    Font_EndDrawing();
 
+
+    glEnable(GL_TEXTURE_2D);    
     glColor(0xFFFFFFFF);
 
     for (size_t i = 0; i < m_testState.m_test.size(); ++i)
     {
         Render_DrawSprite(m_agentTexture, m_testState.m_test[i].x, m_testState.m_test[i].y);
     }
-
-    Font_BeginDrawing(m_font, m_xSize, m_ySize);
-
-    glColor(0xFF000000);
-    Font_DrawText("Hello!", 10, 10);
-
-    Font_EndDrawing();
 
 }
 

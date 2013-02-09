@@ -23,10 +23,9 @@ struct Font
 int Font_Load(Font& font, const char* fileName);
 
 /**
- * Begins drawing with the specified font. This must be called before calling
- * Font_DrawString. xSize and ySize specify the dimensions of the screen.
+ * Begins drawing with the specified font.
  */
-void Font_BeginDrawing(const Font& font, int xSize, int ySize);
+void Font_BeginDrawing(const Font& font);
 
 /**
  * Finishes drawing with a font.
