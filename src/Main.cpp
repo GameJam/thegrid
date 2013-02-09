@@ -1,17 +1,10 @@
 #include "Render.h"
 #include "Texture.h"
+#include "ClientGame.h"
 
 #include <SDL.h>
 
-const int xSize = 1280;
-const int ySize = 800;
-
-int scale = 1;
-
-Texture mapTexture;
-Texture agentTexture;
-
-bool ProcessEvents()
+bool ProcessEvents(ClientGame& game)
 {
 
     SDL_Event event;
@@ -44,17 +37,7 @@ bool ProcessEvents()
             return false;
 
         case SDL_MOUSEBUTTONDOWN:
-            if (event.button.button == SDL_BUTTON_LEFT)
-            {
-                if (scale == 1)
-                {
-                    scale = 2;
-                }
-                else
-                {
-                    scale = 1;
-                }
-            }
+            game.OnMouseDown(event.button.x, event.button.y, event.button.button);
             break;
 
         }
@@ -64,45 +47,11 @@ bool ProcessEvents()
 
 }
 
-void Render()
-{
-
-    Render_Begin(0, 0, xSize * scale, ySize * scale);
-
-    Render_DrawSprite(mapTexture, 0, 0);
-    Render_DrawSprite(agentTexture, 50, 50);
-
-    Render_End();
-
-    SDL_GL_SwapBuffers();
-
-}
-
-void LoadResources()
-{
-
-    struct TextureLoad
-    {
-        Texture*    texture;
-        const char* fileName;
-    };
-
-    TextureLoad load[] = 
-        { 
-            { &mapTexture,   "assets/map_subway.jpg"    },
-            { &agentTexture, "assets/agent.png"         },
-        };
-
-    int numTextures = sizeof(load) / sizeof(TextureLoad);
-    for (int i = 0; i < numTextures; ++i)
-    {   
-        Texture_Load(*load[i].texture, load[i].fileName);
-    }
-
-}
-
 int main(int argc, char* argv[])
 {
+
+    const int xSize = 1280;
+    const int ySize = 800;
 
     if ( SDL_Init(SDL_INIT_AUDIO|SDL_INIT_VIDEO) < 0 )
     {
@@ -113,11 +62,9 @@ int main(int argc, char* argv[])
 
     SDL_WM_SetCaption("The Grid", NULL);
 
-    /* Initialize the video. */
     SDL_GL_SetAttribute(SDL_GL_DOUBLEBUFFER, 1);
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 16);
 
-    /* Disable vsync. */
     SDL_GL_SetAttribute(SDL_GL_SWAP_CONTROL, 0); 
 
     SDL_GL_SetAttribute(SDL_GL_RED_SIZE, 8);
@@ -135,11 +82,14 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
-    LoadResources();
+    ClientGame game(xSize, ySize);
 
-    while (ProcessEvents())
+    game.LoadResources();
+
+    while (ProcessEvents(game))
     {
-        Render();
+        game.Render();
+        SDL_GL_SwapBuffers();
     }
 
     return EXIT_SUCCESS;
