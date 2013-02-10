@@ -3,4 +3,5 @@
 BuildingEntity::BuildingEntity()
 {
     m_stop = 0;
+    m_raided = false;
 }

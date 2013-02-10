@@ -125,6 +125,7 @@ void ClientGame::LoadResources()
             { &m_buildingTowerTexture,                  "assets/building_tower.png"                 },
             { &m_buildingBankTexture,                   "assets/building_bank.png"                  },
             { &m_buildingHouseTexture,                  "assets/building_safehouse.png"             },
+            { &m_buildingRaidedHouseTexture,            "assets/raided_safehouse.png"               },
             { &m_buildingPoliceTexture,                 "assets/building_police.png"                },
             { &m_buttonTexture[ButtonId_Infiltrate],    "assets/action_infiltrate.png"              },
             { &m_buttonTexture[ButtonId_Capture],       "assets/action_capture.png"                 },
@@ -284,7 +285,14 @@ void ClientGame::Render()
             {
                 const BuildingEntity* building = static_cast<const BuildingEntity*>(entity);
                 Vec2 position = m_map.GetStop(building->m_stop).point;
-                Render_DrawSprite(m_buildingHouseTexture, static_cast<int>(position.x) - m_buildingHouseTexture.xSize / 2, static_cast<int>(position.y) - m_buildingHouseTexture.ySize / 2);
+                if (building->m_raided)
+                {
+                    Render_DrawSprite(m_buildingRaidedHouseTexture, static_cast<int>(position.x) - m_buildingRaidedHouseTexture.xSize / 2, static_cast<int>(position.y) - m_buildingHouseTexture.ySize / 2);
+                }
+                else
+                {
+                    Render_DrawSprite(m_buildingHouseTexture, static_cast<int>(position.x) - m_buildingHouseTexture.xSize / 2, static_cast<int>(position.y) - m_buildingHouseTexture.ySize / 2);
+                }
             }
             break;
         }

@@ -40,6 +40,9 @@ public:
     template<class T>
     bool GetNextEntityWithType(int& index, const T*& entity) const;
 
+    template<class T>
+    bool GetNextEntityWithType(int& index, T*& entity) const;
+
 private:
 
     typedef std::vector<Entity*> EntityList;
@@ -104,6 +107,25 @@ bool EntityState::GetNextEntityWithType(int& index, const T*& typedEntity) const
         if (entity->GetTypeId() == T::TypeId)
         {
             typedEntity = static_cast<const T*>(entity);
+            return true;
+        }
+    }
+
+    return false;
+}
+
+template<class T>
+bool EntityState::GetNextEntityWithType(int& index, T*& typedEntity) const
+{
+
+    while (index < static_cast<int>(m_entities.size()))
+    {
+        Entity* entity = m_entities[index];
+        ++index;
+
+        if (entity->GetTypeId() == T::TypeId)
+        {
+            typedEntity = static_cast<T*>(entity);
             return true;
         }
     }

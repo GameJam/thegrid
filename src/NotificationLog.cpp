@@ -34,12 +34,14 @@ NotificationLog::NotificationLog(Map* map, Particles* mapParticles, Font* font)
     m_font = font;
     m_soundCrime = NULL;
     m_soundSpotted = NULL;
+    m_soundDestroyed = NULL;
 }
 
 NotificationLog::~NotificationLog()
 {
     BASS_SampleFree(m_soundCrime);
     BASS_SampleFree(m_soundSpotted);
+    BASS_SampleFree(m_soundDestroyed);
 }
 
 void NotificationLog::Draw(int xSize, int ySize)
@@ -86,6 +88,7 @@ void NotificationLog::LoadResources()
         { &m_notificationAgentCaptured,             "assets/notification_agent_captured.png"    },
         { &m_notificationAgentSpotted,              "assets/notification_agent_spotted.png"     },
         { &m_notificationCrime,                     "assets/notification_crime.png"             },
+        { &m_notificationBuildingDestroyed,         "assets/notification_building_destroyed.png" },
     };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -95,7 +98,8 @@ void NotificationLog::LoadResources()
     }
 
     m_soundCrime = BASS_SampleLoad(false, "assets/sound_crime.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
-    m_soundCrime = BASS_SampleLoad(false, "assets/sound_spotted.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+    m_soundSpotted = BASS_SampleLoad(false, "assets/sound_spotted.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+    m_soundDestroyed = BASS_SampleLoad(false, "assets/sound_infiltrate.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
 
 }
 
@@ -145,7 +149,13 @@ void NotificationLog::VisualizeNotification(const Protocol::NotificationPacket& 
             AddNotificationParticle(&m_notificationAgentLost, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
         }
         break;
-
+    case Protocol::Notification_HouseDestroyed:
+        {
+            const Stop& stop = m_map->GetStop(packet.stop);        
+            AddNotificationParticle(&m_notificationBuildingDestroyed, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+            PlaySample(m_soundDestroyed);
+        }
+        break;
     }
 
 }

@@ -15,6 +15,7 @@ public:
     BuildingEntity();
 
     int             m_stop;
+    bool            m_raided;
 
 };
 

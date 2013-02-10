@@ -45,9 +45,11 @@ private:
     Texture                 m_notificationAgentCaptured;
     Texture                 m_notificationAgentSpotted;
     Texture                 m_notificationCrime;
+    Texture                 m_notificationBuildingDestroyed;
 
     HSAMPLE                 m_soundCrime;
     HSAMPLE                 m_soundSpotted;
+    HSAMPLE                 m_soundDestroyed;
 
     Map*                    m_map;
     Particles*              m_mapParticles;

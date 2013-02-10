@@ -234,12 +234,13 @@ void Server::Client::Infiltrate(AgentEntity* agent)
     bool infiltrated = false;
     int stop = agent->m_currentStop;
     int index = 0;
-    const BuildingEntity* structure;
+    BuildingEntity* structure;
     while (m_state->GetNextEntityWithType(index, structure))
     {
         if (structure->m_stop == stop)
         {
             int id = agent->GetOwnerId();
+            structure->m_raided = true;
             m_server->SendNotification(id, Protocol::Notification_HouseDestroyed, agent->GetId(), agent->m_currentStop, -1);
             m_server->SendNotification(structure->GetOwnerId(), Protocol::Notification_HouseDestroyed, agent->GetId(), agent->m_currentStop, -1);
             infiltrated = true;
