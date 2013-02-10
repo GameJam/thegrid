@@ -134,28 +134,30 @@ void ClientGame::LoadResources()
 
     TextureLoad load[] = 
         { 
-            { &m_agentTexture,                          "assets/agent.png"                  },
-            { &m_agentIntelTexture,                     "assets/agent_intel.png"            },
-            { &m_agentStakeoutTexture,                  "assets/agent_stakeout.png"         },
-            { &m_intelTexture,                          "assets/intel.png"                  },
-            { &m_buildingTowerTexture,                  "assets/building_tower.png"         },
-            { &m_buildingBankTexture,                   "assets/building_bank.png"          },
-            { &m_buildingHouseTexture,                  "assets/building_safehouse.png"     },
-            { &m_buildingPoliceTexture,                 "assets/building_police.png"        },
-            { &m_buttonTexture[ButtonId_Infiltrate],    "assets/action_infiltrate.png"      },
-            { &m_buttonTexture[ButtonId_Capture],       "assets/action_capture.png"         },
-            { &m_buttonTexture[ButtonId_Stakeout],      "assets/action_stakeout.png"        },
-            { &m_buttonTexture[ButtonId_Hack],          "assets/action_hack.png"            },
-            { &m_buttonTexture[ButtonId_Intel],         "assets/action_drop.png"            },
-            { &m_buttonShadowTexture,                   "assets/button_shadow.png"          },
-            { &m_playerPortraitTexture,                 "assets/player_portrait.png"        },
-            { &m_playerEliminatedTexture,               "assets/player_eliminated.png"      },
-            { &m_playerBankHackedTexture,               "assets/player_bank_hacked.png"     },
-            { &m_playerCellHackedTexture,               "assets/player_cell_hacked.png"     },
-            { &m_playerPoliceHackedTexture,             "assets/player_police_hacked.png"   },
-            { &m_titleBackgroundTexture,                "assets/title_background.png"       },
-            { &m_titleTextTexture,                      "assets/title_text.png"             },
-            { &m_uiTexture,                             "assets/ui.png"                     },
+            { &m_agentTexture,                          "assets/agent.png"                          },
+            { &m_agentIntelTexture,                     "assets/agent_intel.png"                    },
+            { &m_agentStakeoutTexture,                  "assets/agent_stakeout.png"                 },
+            { &m_intelTexture,                          "assets/intel.png"                          },
+            { &m_buildingTowerTexture,                  "assets/building_tower.png"                 },
+            { &m_buildingBankTexture,                   "assets/building_bank.png"                  },
+            { &m_buildingHouseTexture,                  "assets/building_safehouse.png"             },
+            { &m_buildingPoliceTexture,                 "assets/building_police.png"                },
+            { &m_buttonTexture[ButtonId_Infiltrate],    "assets/action_infiltrate.png"              },
+            { &m_buttonTexture[ButtonId_Capture],       "assets/action_capture.png"                 },
+            { &m_buttonTexture[ButtonId_Stakeout],      "assets/action_stakeout.png"                },
+            { &m_buttonTexture[ButtonId_Hack],          "assets/action_hack.png"                    },
+            { &m_buttonTexture[ButtonId_Intel],         "assets/action_drop.png"                    },
+            { &m_buttonShadowTexture,                   "assets/button_shadow.png"                  },
+            { &m_playerPortraitTexture,                 "assets/player_portrait.png"                },
+            { &m_playerEliminatedTexture,               "assets/player_eliminated.png"              },
+            { &m_playerBankHackedTexture,               "assets/player_bank_hacked.png"             },
+            { &m_playerCellHackedTexture,               "assets/player_cell_hacked.png"             },
+            { &m_playerPoliceHackedTexture,             "assets/player_police_hacked.png"           },
+            { &m_titleBackgroundTexture,                "assets/title_background.png"               },
+            { &m_titleTextTexture,                      "assets/title_text.png"                     },
+            { &m_uiTexture,                             "assets/ui.png"                             },
+            { &m_notificationAgentLost,                 "assets/notification_agent_lost.png"        },
+            { &m_notificationAgentCaptured,             "assets/notification_agent_captured.png"    },
         };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -579,6 +581,9 @@ void ClientGame::OnMouseDown(int x, int y, int button)
             
             int xWorld, yWorld;
             ScreenToWorld(x, y, xWorld, yWorld);
+
+            AddNotificationParticle(&m_notificationAgentCaptured, xWorld, yWorld);
+
             int stopUnderCursor = m_map.GetStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
 
             if (agentUnderCursor == -1 && stopUnderCursor != -1)
@@ -944,11 +949,24 @@ void ClientGame::OnNotification(Protocol::NotificationPacket& packet)
 
 
 
-    if (packet.notification == Protocol::Notification_AgentCaptured)
+    switch (packet.notification)
     {
-        const Stop& stop = m_map.GetStop(packet.stop);        
-        AddNotificationParticle(&m_playerPortraitTexture, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+    case Protocol::Notification_AgentCaptured:
+        {
+            const Stop& stop = m_map.GetStop(packet.stop);        
+            AddNotificationParticle(&m_notificationAgentCaptured, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+        }
+        break;
+
+    case Protocol::Notification_AgentLost:
+        {
+            const Stop& stop = m_map.GetStop(packet.stop);        
+            AddNotificationParticle(&m_notificationAgentLost, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+        }
+        break;
+
     }
+
 }
 
 void ClientGame::GetButtonRect(ButtonId buttonId, int& x, int& y, int& xSize, int& ySize) const
@@ -1214,6 +1232,7 @@ void ClientGame::AddNotificationParticle(Texture* texture, int x, int y)
     p->texture = texture;
     p->position = Vec2(x, y);
     p->scale = Vec2(0, 0);
+    p->color = 0xffffffff;
     p->rotation = 0;
     p->updateFunction = NotificationBounceFunc;
 }

@@ -16,6 +16,7 @@ struct Particle
     Vec2            position;
     Vec2            scale;
     float           rotation;
+    unsigned long   color;
 
     Texture*        texture;
     UpdateFunction  updateFunction;
