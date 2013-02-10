@@ -106,6 +106,8 @@ void Server::Client::Update()
         m_player->m_eliminated = true;
     }
 
+    UpdateHackingStatus();
+
 }
 
 void Server::Client::OnOrder(const Protocol::OrderPacket& order)
@@ -128,6 +130,7 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
                 agent->m_targetStop = order.targetStop;
                 agent->m_departureTime = m_state->GetTime();
                 agent->m_arrivalTime = m_state->GetTime() + 1;
+                agent->m_state = AgentEntity::State_Idle;
             }
         }
         break;
@@ -150,8 +153,54 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
         }
         break;
 
+    case Protocol::Order_Hack:
+        {
+            StructureType structureType = m_map->GetStop(agent->m_currentStop).structureType;
+            if (structureType != StructureType_None)
+            {
+                if (agent->m_state == AgentEntity::State_Hacking)
+                {
+                    agent->m_state = AgentEntity::State_Idle;
+                }
+                else
+                {
+                    agent->m_state = AgentEntity::State_Hacking;
+                }
+                break;
+            }
+        }
+        break;
+
     }
     
+}
+
+void Server::Client::UpdateHackingStatus()
+{
+    m_player->m_hackingBank   = false;
+    m_player->m_hackingTower  = false;
+    m_player->m_hackingPolice = false;
+    for (size_t i = 0; i < m_agents.size(); ++i)
+    {
+        const AgentEntity* agent = m_agents[i];
+        if (agent->m_state == AgentEntity::State_Hacking)
+        {
+            switch (m_map->GetStop(agent->m_currentStop).structureType)
+            {   
+            case StructureType_Bank:
+                m_player->m_hackingBank = true;
+                break;
+            case StructureType_Tower:
+                m_player->m_hackingTower = true;
+                break;
+            case StructureType_Police:
+                m_player->m_hackingPolice = true;
+                break;
+            default:
+                assert(0);
+            }
+        }
+    }
 }
 
 AgentEntity* Server::Client::FindAgent(int agentId)

@@ -10,10 +10,16 @@ public:
 
     enum { TypeId = EntityTypeId_Agent };
 
+    enum State {
+        State_Idle,
+        State_Hacking,
+    };
+
     AgentEntity();
     
     int     m_currentStop;
     bool    m_hasIntel;
+    State   m_state;
     
     // Movement hack
     int     m_targetStop;

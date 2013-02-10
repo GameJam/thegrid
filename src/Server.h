@@ -32,6 +32,8 @@ public:
 
         void OnOrder(const Protocol::OrderPacket& order);
 
+        void UpdateHackingStatus();
+
     private:
 
         AgentEntity* FindAgent(int agentId);
