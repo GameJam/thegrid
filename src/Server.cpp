@@ -79,9 +79,6 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
     
     LogDebug("Client %i ordered move to %i, %i", m_id, order.x, order.y);
     
-    m_testEntity->x = order.x;
-    m_testEntity->y = order.y;
-
 }
 
 const ClientWorldState& Server::Client::GetState() const
@@ -93,6 +90,7 @@ Server::Server() : m_host(1)
 {
     m_host.Listen(12345);
 
+    m_time = 0;
     m_mapSeed = 42;
     m_gridSpacing = 150;
     m_xMapSize = m_gridSpacing * 9;
@@ -112,8 +110,10 @@ Server::~Server()
     m_clientMap.clear();
 }
 
-void Server::Update()
+void Server::Update(float deltaTime)
 {
+
+    m_time += deltaTime;
 
     m_host.Service(this);
 

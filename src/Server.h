@@ -43,8 +43,6 @@ public:
         AgentList           m_agents;
 
         ClientWorldState    m_state;
-        TestEntity*         m_testEntity;
-        stdext::hash_map<int, TestEntity*> m_spiedTestEntities;
 
     };
 
@@ -53,7 +51,7 @@ public:
     Server();
     virtual ~Server();
 
-    void Update();
+    void Update(float deltaTime);
 
     virtual void OnConnect(int peerId);
     virtual void OnDisconnect(int peerId);
@@ -73,11 +71,13 @@ private:
     ClientMap       m_clientMap;
     EntityTypeList  m_entityTypes;
     Map             m_map;
+    float           m_time;
 
     int             m_mapSeed;
     int             m_gridSpacing;
     int             m_xMapSize;
     int             m_yMapSize;
+
 
 };
 
