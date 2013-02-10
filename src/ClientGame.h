@@ -84,6 +84,8 @@ private:
 
     void UpdateActiveButton(int x, int y);
 
+    void PlaySample(HSAMPLE sample);
+
 private:
   
     int         m_xSize;
@@ -94,6 +96,7 @@ private:
     int         m_mapY;
 
     HSTREAM     m_music;
+    HSAMPLE     m_testSound;
 
     State       m_state;
     ButtonId    m_activeButton;

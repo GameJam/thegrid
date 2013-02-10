@@ -49,10 +49,8 @@ ClientGame::ClientGame(int xSize, int ySize)
 
 ClientGame::~ClientGame()
 {
-    if (m_music != NULL)
-    {
-        BASS_StreamFree(m_music);
-    }
+    BASS_StreamFree(m_music);
+    BASS_SampleFree(m_testSound);
 }
 
 void ClientGame::LoadResources()
@@ -88,6 +86,8 @@ void ClientGame::LoadResources()
     }
 
     Font_Load(m_font, "assets/font.csv");
+
+    m_testSound = BASS_SampleLoad(false, "assets/test.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
 
 }
 
@@ -253,25 +253,6 @@ void ClientGame::Render() const
     glLoadIdentity();
     gluOrtho2D(0, m_xSize, m_ySize, 0);
 
-
-    /*
-    glDisable(GL_TEXTURE_2D);
-    glColor(0x80000000);
-    glBegin(GL_QUADS);
-    glVertex2i(m_xSize - xTextureSize - 40, 0);
-    glVertex2i(m_xSize, 0);
-    glVertex2i(m_xSize, m_ySize);
-    glVertex2i(m_xSize - xTextureSize - 40, m_ySize);
-    glEnd();
-
-    glEnable(GL_TEXTURE_2D);    
-    glColor(0xFFFFFFFF);
-    Render_DrawSprite(m_actionInfiltrateTexture, m_xSize - xTextureSize - 10, 10 + (yTextureSize + 8) * 0 );
-    Render_DrawSprite(m_actionInfiltrateTexture, m_xSize - xTextureSize - 10, 10 + (yTextureSize + 8) * 1 );
-    Render_DrawSprite(m_actionInfiltrateTexture, m_xSize - xTextureSize - 10, 10 + (yTextureSize + 8) * 2 );
-    Render_DrawSprite(m_actionInfiltrateTexture, m_xSize - xTextureSize - 10, 10 + (yTextureSize + 8) * 3 );
-    */
-
     glDisable(GL_TEXTURE_2D);
     glColor(0x80000000);
     glBegin(GL_QUADS);
@@ -411,6 +392,7 @@ void ClientGame::OnMouseMove(int x, int y)
 
 void ClientGame::OnButtonPressed(ButtonId buttonId)
 {
+    PlaySample(m_testSound);
 }
 
 void ClientGame::ScreenToWorld(int xScreen, int yScreen, int& xWorld, int& yWorld) const
@@ -555,4 +537,10 @@ ClientGame::ButtonId ClientGame::GetButtonAtPoint(int x, int y) const
 void ClientGame::UpdateActiveButton(int x, int y)
 {
     m_activeButtonDown = (GetButtonAtPoint(x, y) == m_activeButton);
+}
+
+void ClientGame::PlaySample(HSAMPLE sample)
+{
+    HCHANNEL channel = BASS_SampleGetChannel(sample, false);
+    BASS_ChannelPlay(channel, true);
 }
