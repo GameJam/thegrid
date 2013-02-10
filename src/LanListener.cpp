@@ -96,4 +96,13 @@ void LanListener::AddServer(const char* name, unsigned long ip, int port, time_t
 
 void LanListener::RemoveOldServers(time_t time)
 {
+    for (int i = 0; i < m_numServers; ++i)
+    {
+        if (time - m_server[i].time > s_serverTimeout)
+        {
+            --m_numServers;
+            m_server[i] = m_server[m_numServers];
+            --i;
+        }
+    }
 }

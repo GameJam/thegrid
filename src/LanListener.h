@@ -8,8 +8,9 @@ class LanListener
 
 public:
 
-    static const int s_maxServerName = 64;
-    static const int s_maxServers    = 64;
+    static const int    s_maxServerName = 64;
+    static const int    s_maxServers    = 64;
+    static const time_t s_serverTimeout = 4;
 
     struct Server
     {
