@@ -740,6 +740,15 @@ void ClientGame::UpdateActiveButtons()
         buttonEnabled[i] = selection;
     }
 
+    if (structure == StructureType_House)
+    {
+        buttonEnabled[ButtonId_Hack] = false;
+    }
+    else
+    {
+        buttonEnabled[ButtonId_Intel] = false;
+    }
+
     if (structure != StructureType_None)
     {
         buttonEnabled[ButtonId_Infiltrate] = false;
@@ -796,7 +805,23 @@ void ClientGame::PlaySample(HSAMPLE sample)
 
 StructureType ClientGame::GetStructureAtStop(int stop) const
 {
-    return m_map.GetStop(stop).structureType;   
+    StructureType structureType = m_map.GetStop(stop).structureType;   
+
+    if (structureType != StructureType_None)
+    {
+        return structureType;
+    }
+
+    for (int i = 0; i < m_state.GetNumEntities(); ++i)
+    {
+        const Entity* entity = m_state.GetEntity(i);
+        if (entity->GetTypeId() == EntityTypeId_Building &&
+            static_cast<const BuildingEntity*>(entity)->m_stop == stop)
+        {
+            return StructureType_House;
+        }
+    }
+    return StructureType_None;
 }
 
 const Entity* ClientGame::GetEntity(int id) const

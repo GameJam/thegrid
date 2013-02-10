@@ -12,6 +12,7 @@ enum StructureType
     StructureType_Bank,
     StructureType_Police,
     StructureType_Tower,
+    StructureType_House, // never placed on the map.
 };
 
 struct Stop
