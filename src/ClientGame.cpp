@@ -110,6 +110,7 @@ void ClientGame::Render() const
             0xFF39349A,
             0xFFE31F21,
             0xFF02A353,
+            0xFF0098DF,
         };
 
     int numLines = sizeof(lineColor) / sizeof(unsigned long);

@@ -67,7 +67,7 @@ void Map::Generate(int xSize, int ySize, int seed)
     int xNumTiles = xSize / terminalSpacing;
     int yNumTiles = ySize / terminalSpacing;
 
-    const int maxLines = 7;
+    const int maxLines = 8;
     int line = 0;
 
     for (int x = 0; x < xNumTiles; ++x)

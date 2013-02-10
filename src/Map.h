@@ -54,12 +54,16 @@ private:
 
     static const int s_maxStops = 500;
     static const int s_maxRails = 1500;
+    static const int s_maxRiverVertices = 100;
 
     int     m_numStops;
     Stop    m_stop[s_maxStops];
 
     int     m_numRails;
     Rail    m_rail[s_maxRails];
+
+    int     m_numRiverVertices;
+    Vec2    m_riverVertex[s_maxRiverVertices];
 
 };
 
