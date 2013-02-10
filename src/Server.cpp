@@ -69,6 +69,7 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
         if (agent->m_targetStop == -1 && std::find(neighbors.begin(), neighbors.end(), order.targetStop) != neighbors.end())
         {
             agent->m_targetStop = order.targetStop;
+            agent->m_departureTime = m_state->GetTime();
             agent->m_arrivalTime = m_state->GetTime() + 1;
         }
         break;
@@ -163,6 +164,7 @@ void Server::OnConnect(int peerId)
     initializeGame.gridSpacing = m_gridSpacing;
     initializeGame.xMapSize = m_xMapSize;
     initializeGame.yMapSize = m_yMapSize;
+    initializeGame.time = m_time;
 
     m_host.SendPacket(peerId, 0, &initializeGame, sizeof(Protocol::InitializeGamePacket));
 }

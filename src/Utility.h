@@ -14,6 +14,12 @@ T Max(const T& x, const T& y)
 }
 
 template <class T>
+T Clamp(const T& x, const T& minValue, const T& maxValue)
+{
+    return Max(minValue, Min(maxValue, x));
+}
+
+template <class T>
 void Swap(T& x, T& y)
 {
     T temp = x;
