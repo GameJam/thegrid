@@ -194,6 +194,7 @@ private:
     EntityState         m_state;
 
     int                 m_hoverStop;
+    ButtonId            m_hoverButton;
     int                 m_selectedAgent;
 
     int                 m_maxPlayersInGame;

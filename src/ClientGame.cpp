@@ -80,6 +80,7 @@ ClientGame::ClientGame(int xSize, int ySize, bool playMusic)
     m_blipY         = 0;
     m_serverId      = -1;
     m_hoverStop     = -1;
+    m_hoverButton   = ButtonId_None;
     m_xMapSize      = 0;
     m_yMapSize      = 0;
     m_gridSpacing   = 0;
@@ -528,6 +529,35 @@ void ClientGame::Render()
         Font_DrawText(m_isWinner ? "You WIN!" : "GAME OVER", 10, 10);
     }
 
+    // Tool tip.
+
+    const char* toolTip = NULL;
+    if (m_hoverButton == ButtonId_Capture)
+    {
+        toolTip = "Search and capture any enemy agents at this location";
+    }
+    else if (m_hoverButton == ButtonId_Stakeout)
+    {
+        toolTip = "Put the agent into stakeout mode so any enemy agents passing\nthrough the stop will be detected";
+    }
+    else if (m_hoverButton == ButtonId_Infiltrate)
+    {
+        toolTip = "Search and infiltrate enemy safe houses at this location";
+    }
+    else if (m_hoverButton == ButtonId_Hack)
+    {
+        toolTip = "Hack the building to gather information";
+    }
+    else if (m_hoverButton == ButtonId_Intel)
+    {
+        toolTip = "Pickup/drop the intel";
+    }
+    if (toolTip != NULL)
+    {
+        Font_DrawText(toolTip, 400, m_ySize - yStatusBarSize + 20);
+    }
+
+
     Font_EndDrawing();
 
     glEnable(GL_TEXTURE_2D);
@@ -729,6 +759,8 @@ void ClientGame::OnMouseMove(int x, int y)
     {
         return;
     }
+
+    m_hoverButton = GetButtonAtPoint(x, y);
 
     if (m_mapState == State_Button)
     {

@@ -123,8 +123,17 @@ int Font_DrawText(const char* text, int x, int y)
 
     glBegin(GL_QUADS);
 
+    int xStart = x;
+
     while (text[0] != 0)
     {
+
+        while (text[0] == '\n')
+        {
+            y += g_font->fontHeight;
+            x = xStart;
+            ++text;
+        }
     
         int     charIndex;
         int     row, col;
