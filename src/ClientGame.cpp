@@ -3,11 +3,21 @@
 #include "Entity.h"
 #include "AgentEntity.h"
 #include "BuildingEntity.h"
+#include "Utility.h"
 
 #include <math.h>
 #include <assert.h>
 
 const int yStatusBarSize    = 140;
+
+
+static float EaseInOutQuad(float t, float b, float c, float d) 
+{
+    t /= d/2;
+    if (t < 1) return c/2*t*t + b;
+    t--;
+    return -c/2 * (t*(t-2) - 1) + b;
+};
 
 static void DrawCircle(const Vec2& point, float radius)
 {
@@ -278,6 +288,7 @@ void ClientGame::Render() const
         Font_DrawText(buffer, -outerBorder + 10, y * m_gridSpacing + m_gridSpacing / 2 - fontHeight / 2);
         Font_DrawText(buffer, m_xMapSize + 10, y * m_gridSpacing + m_gridSpacing / 2 - fontHeight / 2);
     }
+
     Font_EndDrawing();
 
 
@@ -343,6 +354,13 @@ void ClientGame::Render() const
             Render_DrawSprite( m_buttonTexture[i], xButton + buttonOffset, yButton + buttonOffset );
         }
     }
+
+    Font_BeginDrawing(m_font);
+    glColor(0xFF000000);
+    char timeBuffer[32];
+    sprintf(timeBuffer, "%.2f", m_time);
+    Font_DrawText(timeBuffer, 10, 10);
+    Font_EndDrawing();
 
 }
 
@@ -456,6 +474,19 @@ int ClientGame::GetAgentUnderCursor(int xScreen, int yScreen) const
 Vec2 ClientGame::GetAgentPosition(const AgentEntity* agent) const
 {
     int stop = agent->m_currentStop;
+    int targetStop = agent->m_targetStop;
+
+    if (targetStop != -1)
+    {
+        Vec2 from = m_map.GetStop(stop).point;
+        Vec2 to = m_map.GetStop(targetStop).point;
+
+        float t = (m_time - agent->m_departureTime) / (agent->m_arrivalTime - agent->m_departureTime);
+        t = EaseInOutQuad(t, 0.0f, 1.0f, 1.0f);
+        t = Clamp(t, 0.0f, 1.0f);
+        
+        return Lerp(from, to, t);
+    }
     if (stop != -1)
     {
         return m_map.GetStop(stop).point;
@@ -630,6 +661,7 @@ void ClientGame::SendOrder(Protocol::OrderPacket& order)
 void ClientGame::OnInitializeGame(Protocol::InitializeGamePacket& packet)
 {
     LogDebug("Initializing game with seed %i", packet.mapSeed);
+    m_time = packet.time;
     m_xMapSize = packet.xMapSize;
     m_yMapSize = packet.yMapSize;
     m_gridSpacing = packet.gridSpacing;

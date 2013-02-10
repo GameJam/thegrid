@@ -19,6 +19,7 @@ enum Order
 struct InitializeGamePacket
 {
     char        packetType;
+    float       time;
     int         mapSeed;
     int         gridSpacing;
     int         xMapSize;

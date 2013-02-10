@@ -14,6 +14,7 @@ public:
     
     // Movement hack
     int     m_targetStop;
+    float   m_departureTime;
     float   m_arrivalTime;
 
 };
