@@ -33,11 +33,13 @@ NotificationLog::NotificationLog(Map* map, Particles* mapParticles, Font* font)
     m_mapParticles = mapParticles;
     m_font = font;
     m_soundCrime = NULL;
+    m_soundSpotted = NULL;
 }
 
 NotificationLog::~NotificationLog()
 {
     BASS_SampleFree(m_soundCrime);
+    BASS_SampleFree(m_soundSpotted);
 }
 
 void NotificationLog::Draw(int xSize, int ySize)
@@ -89,6 +91,7 @@ void NotificationLog::LoadResources()
     }
 
     m_soundCrime = BASS_SampleLoad(false, "assets/sound_crime.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+    m_soundCrime = BASS_SampleLoad(false, "assets/sound_spotted.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
 
 }
 
@@ -122,6 +125,7 @@ void NotificationLog::VisualizeNotification(const Protocol::NotificationPacket& 
         {
             const Stop& stop = m_map->GetStop(packet.stop);        
             AddNotificationParticle(&m_notificationAgentSpotted, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+            PlaySample(m_soundSpotted);
         }
         break;
     case Protocol::Notification_CrimeDetected:

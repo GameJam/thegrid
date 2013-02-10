@@ -47,6 +47,7 @@ private:
     Texture                 m_notificationCrime;
 
     HSAMPLE                 m_soundCrime;
+    HSAMPLE                 m_soundSpotted;
 
     Map*                    m_map;
     Particles*              m_mapParticles;
