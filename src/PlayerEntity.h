@@ -11,6 +11,7 @@ public:
     PlayerEntity();
 
     char    m_name[32];
+    bool    m_eliminated;
     bool    m_hackingBank;
     bool    m_hackingTower;
     bool    m_hackingPolice;

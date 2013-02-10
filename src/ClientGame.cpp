@@ -107,6 +107,7 @@ void ClientGame::LoadResources()
             { &m_buttonTexture[ButtonId_Intel],         "assets/action_drop.png"        },
             { &m_buttonShadowTexture,                   "assets/button_shadow.png"      },
             { &m_playerPortraitTexture,                 "assets/player_portrait.png"    },
+            { &m_playerEliminatedTexture,               "assets/player_eliminated.png"  },
         };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -430,6 +431,18 @@ void ClientGame::Render() const
     sprintf(timeBuffer, "%.2f", m_time);
     Font_DrawText(timeBuffer, 10, 10);
     Font_EndDrawing();
+
+    glEnable(GL_TEXTURE_2D);
+    glColor(0xFFFFFFFF);
+    for (int i = 0; i < numPlayers; ++i)
+    {
+        if (player[i]->m_eliminated)
+        {
+            Render_DrawSprite(m_playerEliminatedTexture,
+                m_xSize - 250,
+                20 + 130 * i);
+        }
+    }
 
 }
 

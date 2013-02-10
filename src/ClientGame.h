@@ -140,6 +140,7 @@ private:
     Texture     m_buttonTexture[ButtonId_NumButtons];
     Texture     m_buttonShadowTexture;
     Texture     m_playerPortraitTexture;
+    Texture     m_playerEliminatedTexture;
 
     Button      m_button[ButtonId_NumButtons];
 
