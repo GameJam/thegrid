@@ -613,7 +613,7 @@ int Server::PingIntel(int clientId, int lastPinged)
     {
         if (m_intelList[intel].m_owner != clientId && !m_intelList[intel].m_inHouse)
         {
-            SendNotification(clientId, Protocol::Notification_IntelDetected, -1, m_intelList[i].m_stop, -1);
+            SendNotification(clientId, Protocol::Notification_IntelDetected, -1, m_intelList[intel].m_stop, -1);
             return intel;
         }
 
