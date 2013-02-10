@@ -42,9 +42,9 @@ private:
     enum ButtonId
     {
         ButtonId_Infiltrate,
+        ButtonId_Hack,
         ButtonId_Capture,
         ButtonId_Stakeout,
-        ButtonId_Hack,
         ButtonId_Intel,
         ButtonId_NumButtons,
         ButtonId_None,
