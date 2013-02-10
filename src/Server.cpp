@@ -21,7 +21,7 @@ Server::Client::Client(int id, Server& server)
 
     m_random.Seed(SDL_GetTicks());
 
-    const int numAgents     = 3;
+    const int numAgents     = 5;
     const int numSafeHouses = 3;
 
     m_player = m_state->CreateEntity<PlayerEntity>();
