@@ -188,15 +188,23 @@ int main(int argc, char* argv[])
     game->LoadResources();
     game->Connect(hostName, 12345);
 
+    Uint32 lastTime = SDL_GetTicks();
+
     while (ProcessEvents(*game))
     {
+        Uint32 time = SDL_GetTicks();
+        Uint32 deltaTime = time = lastTime;
+        lastTime = time;
+
+        float deltaTimeSeconds = static_cast<float>(deltaTime) / 1000.0f;
+
         game->Update();
         game->Render();
         SDL_GL_SwapBuffers();
         
         if (server)
         {
-            server->Update();
+            server->Update(deltaTimeSeconds);
         }
     }
 
