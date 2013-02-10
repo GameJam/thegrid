@@ -34,6 +34,7 @@ public:
         void OnOrder(const Protocol::OrderPacket& order);
 
         void UpdateHackingStatus();
+        void CheckForStakeout(AgentEntity* agent);
 
     private:
 

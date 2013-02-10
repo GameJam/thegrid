@@ -98,6 +98,7 @@ void Server::Client::Update()
         {
             agent->m_currentStop = agent->m_targetStop;
             agent->m_targetStop = -1;
+            CheckForStakeout(agent);
         }
 
     }
@@ -110,6 +111,23 @@ void Server::Client::Update()
 
     UpdateHackingStatus();
 
+}
+
+void Server::Client::CheckForStakeout(AgentEntity* agent)
+{
+    // Check if the location of the agent is being staked out.
+    int stop = agent->m_currentStop;
+    int index = 0;
+    const AgentEntity* testAgent;
+    while (m_state->GetNextEntityWithType(index, testAgent))
+    {
+        if (testAgent->m_state == AgentEntity::State_Stakeout &&
+            testAgent->m_currentStop == stop)
+        {
+            int id = testAgent->GetOwnerId();
+            m_server->SendNotification(id, Protocol::Notification_AgentSpotted, agent->GetId(), agent->m_currentStop, -1);
+        }
+    }
 }
 
 void Server::Client::OnOrder(const Protocol::OrderPacket& order)

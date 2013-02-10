@@ -173,6 +173,7 @@ private:
     Texture             m_uiTexture;
     Texture             m_notificationAgentLost;
     Texture             m_notificationAgentCaptured;
+    Texture             m_notificationAgentSpotted;
 
     Button              m_button[ButtonId_NumButtons];
 

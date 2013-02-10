@@ -160,6 +160,7 @@ void ClientGame::LoadResources()
             { &m_uiTexture,                             "assets/ui.png"                             },
             { &m_notificationAgentLost,                 "assets/notification_agent_lost.png"        },
             { &m_notificationAgentCaptured,             "assets/notification_agent_captured.png"    },
+            { &m_notificationAgentSpotted,              "assets/notification_agent_spotted.png"    },
         };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -988,6 +989,12 @@ void ClientGame::OnNotification(Protocol::NotificationPacket& packet)
             AddNotificationParticle(&m_notificationAgentCaptured, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
         }
         break;
+    case Protocol::Notification_AgentSpotted:
+        {
+            const Stop& stop = m_map.GetStop(packet.stop);        
+            AddNotificationParticle(&m_notificationAgentSpotted, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+        }
+        break;
 
     case Protocol::Notification_AgentLost:
         {
@@ -1210,6 +1217,14 @@ void ClientGame::RenderMainMenu()
     int yButtonSize = 50;
 
     UI_Begin( m_uiTexture.handle, m_xSize, m_ySize );
+
+#ifdef _DEBUG
+    if (UI_Button(UI_ID, m_font, (m_xSize - xButtonSize) / 2, m_ySize - 300 + (yButtonSize + 10) * 4, xButtonSize, yButtonSize, "Connect to local"))
+    {
+        m_gameState = GameState_WaitingForServer;
+        Connect("localhost", 12345);
+    }
+#endif
 
     if (UI_Button(UI_ID, m_font, (m_xSize - xButtonSize) / 2, m_ySize - 300 + (yButtonSize + 10) * 0, xButtonSize, yButtonSize, "Host a game"))
     {
