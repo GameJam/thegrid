@@ -18,6 +18,7 @@ Server::Client::Client(int id, Server& server)
         AgentEntity* agent = new AgentEntity();
         int stop = static_cast<int>(m_random.Generate(0, m_map->GetNumStops() - 1));
         agent->m_currentStop = stop;
+        agent->SetOwnerId(m_id);
 
         m_agents.push_back(agent);
         state.AddEntity(agent);
