@@ -171,6 +171,8 @@ private:
     Texture             m_titleTextTexture;
     Texture             m_titleBackgroundTexture;
     Texture             m_uiTexture;
+    Texture             m_notificationAgentLost;
+    Texture             m_notificationAgentCaptured;
 
     Button              m_button[ButtonId_NumButtons];
 

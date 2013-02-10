@@ -8,7 +8,7 @@ Particle* Particles::Add()
 
     m_particles.resize(m_particles.size() + 1);
     Particle* result = &m_particles.back();
-    result->time = 0;
+    memset(result, 0, sizeof(Particle));
     return result;
 
 }
@@ -26,6 +26,7 @@ void Particles::Draw() const
             glTranslatef(particle.position.x, particle.position.y, 0);
             glRotatef(particle.rotation, 0, 0, 1);
             glScalef(particle.scale.x, particle.scale.y, 1);
+            glColor(particle.color);
             Render_DrawSprite(*particle.texture, -particle.texture->xSize/2, -particle.texture->ySize/2);
             glPopMatrix();
         }
