@@ -4,7 +4,7 @@
 #include "Host.h"
 
 #include "Protocol.h"
-#include "ClientWorldState.h"
+#include "EntityState.h"
 #include "Entity.h"
 #include "EntityType.h"
 #include "Map.h"
@@ -23,15 +23,13 @@ public:
     class Client
     {
     public:
-        Client(int id, Map* map, EntityTypeList* entityTypes);
+        Client(int id, Server& server);
 
         int GetId() const;
 
         void Update(Server& server);
 
         void OnOrder(const Protocol::OrderPacket& order);
-
-        const ClientWorldState& GetState() const;
 
     private:
         
@@ -41,8 +39,6 @@ public:
         Map*                m_map;
         Random              m_random;
         AgentList           m_agents;
-
-        ClientWorldState    m_state;
 
     };
 
@@ -60,16 +56,19 @@ public:
     float GetTime() const;
     void GetClients(ClientList& clients);
 
+    EntityState& GetState();
+    Map& GetMap();
+
 private:
     
     Client* FindClient(int peerId);
-    void SendClientState(const ClientWorldState& state);
-
+    void SendClientState(int peerId);
 
     typedef stdext::hash_map<int, Client*> ClientMap;
     Host            m_host;
     ClientMap       m_clientMap;
     EntityTypeList  m_entityTypes;
+    EntityState     m_globalState;
     Map             m_map;
     float           m_time;
 

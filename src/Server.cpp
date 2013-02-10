@@ -5,13 +5,13 @@
 
 #include <SDL.h>
 
-Server::Client::Client(int id, Map* map, EntityTypeList* entityTypes) : m_state(entityTypes)
+Server::Client::Client(int id, Server& server)
 {
 
     m_id = id;
-    m_map = map;
+    m_map = &server.GetMap();
     m_random.Seed(SDL_GetTicks());
-    m_state.SetClientId(id);
+    EntityState& state = server.GetState();
 
     for (int i = 0; i < 3; ++i)
     {
@@ -20,7 +20,7 @@ Server::Client::Client(int id, Map* map, EntityTypeList* entityTypes) : m_state(
         agent->m_currentStop = stop;
 
         m_agents.push_back(agent);
-        m_state.AddEntity(agent);
+        state.AddEntity(agent);
     }
 
 }
@@ -33,7 +33,7 @@ int Server::Client::GetId() const
 void Server::Client::Update(Server& server)
 {
 
-    m_state.SetTime(server.GetTime());
+    EntityState& state = server.GetState();
 
     // 1. Execute orders
 
@@ -46,7 +46,7 @@ void Server::Client::Update(Server& server)
         {
             const std::vector<int>& neighbours = m_map->GetStop(agent->m_currentStop).children;
             agent->m_targetStop = neighbours[m_random.Generate(0, static_cast<int>(neighbours.size() - 1))];
-            agent->m_arrivalTime = m_state.GetTime() + 2;
+            agent->m_arrivalTime = state.GetTime() + 2;
         }
     }
 
@@ -56,7 +56,7 @@ void Server::Client::Update(Server& server)
     {
         AgentEntity* agent = m_agents[i];
 
-        if (agent->m_targetStop != -1 && agent->m_arrivalTime < m_state.GetTime())
+        if (agent->m_targetStop != -1 && agent->m_arrivalTime < state.GetTime())
         {
             agent->m_currentStop = agent->m_targetStop;
             agent->m_targetStop = -1;
@@ -108,12 +108,9 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
     
 }
 
-const ClientWorldState& Server::Client::GetState() const
-{
-    return m_state;
-}
-
-Server::Server() : m_host(1)
+Server::Server() 
+    : m_host(1), 
+      m_globalState(&m_entityTypes)
 {
     m_host.Listen(12345);
 
@@ -141,6 +138,7 @@ void Server::Update(float deltaTime)
 {
 
     m_time += deltaTime;
+    m_globalState.SetTime(m_time);
 
     m_host.Service(this);
 
@@ -151,14 +149,16 @@ void Server::Update(float deltaTime)
 
     for (ClientMap::iterator i = m_clientMap.begin(); i != m_clientMap.end(); ++i)
     {
-        SendClientState(i->second->GetState());
+        SendClientState(i->second->GetId());
     }
+
+
 
 }
 
 void Server::OnConnect(int peerId)
 {
-    m_clientMap[peerId] = new Client(peerId, &m_map, &m_entityTypes);
+    m_clientMap[peerId] = new Client(peerId, *this);
 
     Protocol::InitializeGamePacket initializeGame;
     initializeGame.packetType = Protocol::PacketType_InitializeGame;
@@ -226,6 +226,16 @@ void Server::GetClients(ClientList& clients)
     }
 }
 
+EntityState& Server::GetState()
+{
+    return m_globalState;
+}
+
+Map& Server::GetMap()
+{
+    return m_map;
+}
+
 Server::Client* Server::FindClient(int peerId)
 {
 
@@ -239,18 +249,18 @@ Server::Client* Server::FindClient(int peerId)
 
 }
 
-void Server::SendClientState(const ClientWorldState& state)
+void Server::SendClientState(int clientId)
 {
 
-    size_t dataSize = state.GetSerializedSize();
+    size_t dataSize = m_globalState.GetSerializedSize(clientId);
     size_t packetSize = dataSize + sizeof(Protocol::StatePacketHeader);
     char* buffer = new char[packetSize];
 
     Protocol::StatePacket* packet = reinterpret_cast<Protocol::StatePacket*>(buffer);
     packet->header.packetType = Protocol::PacketType_State;
     packet->header.dataSize = dataSize;
-    state.Serialize(packet->data, dataSize);
-    m_host.SendPacket(state.GetClientId(), 0, packet, packetSize);
+    m_globalState.Serialize(clientId, packet->data, dataSize);
+    m_host.SendPacket(clientId, 0, packet, packetSize);
     delete[] buffer;
 
 }

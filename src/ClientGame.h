@@ -7,7 +7,7 @@
 
 #include "Host.h"
 #include "Protocol.h"
-#include "ClientWorldState.h"
+#include "EntityState.h"
 #include "EntityType.h"
 
 #include <bass.h>
@@ -139,7 +139,7 @@ private:
     int         m_serverId;
 
     EntityTypeList      m_entityTypes;
-    ClientWorldState    m_state;
+    EntityState    m_state;
 
     int         m_hoverStop;
     int         m_selectedAgent;

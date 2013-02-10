@@ -1,4 +1,4 @@
-#include "ClientWorldState.h"
+#include "EntityState.h"
 
 #include "Entity.h"
 
@@ -7,102 +7,97 @@
 struct SerializeHeader
 {
     size_t  numEntities;
-    int     clientId;
     float   time;
 };
 
 
-ClientWorldState::ClientWorldState(EntityTypeList* entityTypeList)
+EntityState::EntityState(EntityTypeList* entityTypeList)
 {
-    m_clientId = -1;
     m_nextEntityId = 1;  
     m_entityTypeList = entityTypeList;
 }
 
-void ClientWorldState::SetClientId(int clientId)
-{
-    m_clientId = clientId;
-}
-
-int ClientWorldState::GetClientId() const
-{
-    return m_clientId;
-}
-
-void ClientWorldState::SetTime(float time)
+void EntityState::SetTime(float time)
 {
     m_time = time;
 }
 
-float ClientWorldState::GetTime() const
+float EntityState::GetTime() const
 {
     return m_time;
 }
 
-int ClientWorldState::GetNumEntities() const
+int EntityState::GetNumEntities() const
 {
     return static_cast<int>(m_entities.size());
 }
 
-Entity* ClientWorldState::GetEntity(int entityIndex)
+Entity* EntityState::GetEntity(int entityIndex)
 {
     return m_entities[entityIndex];
 }
 
-void ClientWorldState::AddEntity(Entity* entity)
+void EntityState::AddEntity(Entity* entity)
 {
     entity->SetId(m_nextEntityId);
     ++m_nextEntityId;
     m_entities.push_back(entity);
 }
 
-const Entity* ClientWorldState::GetEntity(int entityIndex) const
+const Entity* EntityState::GetEntity(int entityIndex) const
 {
     return m_entities[entityIndex];
 }
 
-size_t ClientWorldState::GetSerializedSize() const
+size_t EntityState::GetSerializedSize(int clientId) const
 {
     size_t size = sizeof(SerializeHeader);
 
     for (size_t i = 0; i < m_entities.size(); ++i)
     {
-        EntityType* entityType = (*m_entityTypeList)[m_entities[i]->GetTypeId()];
-        size += entityType->GetSerializedSize(m_entities[i]) + sizeof(EntityTypeId);
+        Entity* entity = m_entities[i];
+        if (entity->GetOwnerId() == clientId || entity->GetOwnerId() == -1)
+        {
+            EntityType* entityType = (*m_entityTypeList)[entity->GetTypeId()];
+            size += entityType->GetSerializedSize(entity) + sizeof(EntityTypeId);
+        }
     }
 
     return size;
 }
 
-void ClientWorldState::Serialize(void* buffer, size_t size) const
+void EntityState::Serialize(int clientId, void* buffer, size_t size) const
 {
 
     SerializeHeader* header = static_cast<SerializeHeader*>(buffer);
     header->numEntities = m_entities.size();
-    header->clientId = m_clientId;
     header->time = m_time;
 
     char* entityBuffer = reinterpret_cast<char*>(header + 1);
     for (size_t i = 0; i < m_entities.size(); ++i)
     {
-        EntityTypeId typeId = m_entities[i]->GetTypeId();
+        Entity* entity = m_entities[i];
 
-        *reinterpret_cast<EntityTypeId*>(entityBuffer) = typeId;
-        entityBuffer += sizeof(EntityTypeId);
+        if (entity->GetOwnerId() == clientId || entity->GetOwnerId() == -1)
+        {
+            EntityTypeId typeId = entity->GetTypeId();
 
-        EntityType* entityType = (*m_entityTypeList)[typeId];
-        entityBuffer += entityType->Serialize(m_entities[i], entityBuffer);
+            *reinterpret_cast<EntityTypeId*>(entityBuffer) = typeId;
+            entityBuffer += sizeof(EntityTypeId);
+
+            EntityType* entityType = (*m_entityTypeList)[typeId];
+            entityBuffer += entityType->Serialize(m_entities[i], entityBuffer);
+        }
     }
 
     assert(entityBuffer == static_cast<char*>(buffer) + size);
 
 }
 
-void ClientWorldState::Deserialize(const void* buffer, size_t size)
+void EntityState::Deserialize(const void* buffer, size_t size)
 {
 
     const SerializeHeader* header = static_cast<const SerializeHeader*>(buffer);
-    m_clientId = header->clientId;
     m_time = header->time;
 
     if (m_entities.size() < header->numEntities)
