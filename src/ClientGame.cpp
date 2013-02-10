@@ -376,21 +376,55 @@ void ClientGame::Render() const
         }
     }
 
-    // Show the players.
-    glColor(0xFFFFFFFF);
+    const int maxPlayers = 32;
+    const PlayerEntity* player[maxPlayers] = { NULL };
+
     int numPlayers = 0;
     for (int i = 0; i < m_state.GetNumEntities(); ++i)
     {
         const Entity* entity = m_state.GetEntity(i);
-        if (entity->GetTypeId() == EntityTypeId_Player)
+        if (entity->GetTypeId() == EntityTypeId_Player && numPlayers < maxPlayers)
         {
-            const PlayerEntity* player = static_cast<const PlayerEntity*>(entity);
-            Render_DrawSprite(m_playerPortraitTexture, m_xSize - m_playerPortraitTexture.xSize - 20, 20 + (m_playerPortraitTexture.ySize + 20) * numPlayers);
+            player[numPlayers] = static_cast<const PlayerEntity*>(entity);
             ++numPlayers;
         }
     }
 
+    // Show the players.
+
+    glDisable(GL_TEXTURE_2D);
+    glColor(0x80000000);
+    glBegin(GL_QUADS);
+    for (int i = 0; i < numPlayers; ++i)
+    {
+        int x = m_xSize - 300;
+        int y = 10 + 130 * i;
+        glVertex2i( x, y );   
+        glVertex2i( m_xSize, y );   
+        glVertex2i( m_xSize, y + 115 );   
+        glVertex2i( x, y + 115 );   
+    }
+    glEnd();
+
+    glEnable(GL_TEXTURE_2D);
+    glColor(0xFFFFFFFF);
+    for (int i = 0; i < numPlayers; ++i)
+    {
+        Render_DrawSprite(m_playerPortraitTexture,
+            m_xSize - 290,
+            20 + 130 * i);
+    }
+
     Font_BeginDrawing(m_font);
+    glColor(0xFF000000);
+
+    for (int i = 0; i < numPlayers; ++i)
+    {
+        Font_DrawText(player[i]->m_name,
+            m_xSize - m_playerPortraitTexture.xSize - 60,
+            20 + 130 * i);
+    }
+
     glColor(0xFF000000);
     char timeBuffer[32];
     sprintf(timeBuffer, "%.2f", m_time);
