@@ -1,10 +1,23 @@
 #ifndef GAME_LAN_LISTENER_H
 #define GAME_LAN_LISTENER_H
 
+#include <time.h>
+
 class LanListener
 {
 
 public:
+
+    static const int s_maxServerName = 64;
+    static const int s_maxServers    = 64;
+
+    struct Server
+    {
+        char            name[s_maxServerName];
+        unsigned long   ip;
+        int             port;
+        time_t          time;
+    };
 
     LanListener();
 
@@ -13,13 +26,10 @@ public:
 
 private:
 
-    static const int s_maxServerName = 64;
-    static const int s_maxServers    = 64;
+    void AddServer(const char* name, unsigned long ip, int port, time_t time);
+    void RemoveOldServers(time_t time);
 
-    struct Server
-    {
-        char name[s_maxServerName];
-    };
+private:
 
     int             m_port;
     int             m_socket;

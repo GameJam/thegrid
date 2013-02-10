@@ -33,9 +33,9 @@ bool LanBroadcast::Initialize(int port)
     }
 
     sockaddr_in address;
-    address.sin_port                = htons(m_port);
-    address.sin_family              = AF_INET;
-    address.sin_addr.S_un.S_addr    = htonl(0x7F000001);
+    address.sin_port            = htons(m_port);
+    address.sin_family          = AF_INET;
+    address.sin_addr.s_addr     = htonl(INADDR_ANY);
 
     if (bind(m_socket, (struct sockaddr*)&address, sizeof(address)) == -1)
     {
