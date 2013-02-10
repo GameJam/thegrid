@@ -97,6 +97,9 @@ Server::Server() : m_host(1)
     m_host.Listen(12345);
 
     m_mapSeed = 42;
+    m_gridSpacing = 150;
+    m_xMapSize = m_gridSpacing * 9;
+    m_yMapSize = m_gridSpacing * 6;
 
     InitializeEntityTypes(m_entityTypes);
 }
@@ -129,6 +132,10 @@ void Server::OnConnect(int peerId)
     Protocol::InitializeGamePacket initializeGame;
     initializeGame.packetType = Protocol::PacketType_InitializeGame;
     initializeGame.mapSeed = m_mapSeed;
+    initializeGame.gridSpacing = m_gridSpacing;
+    initializeGame.xMapSize = m_xMapSize;
+    initializeGame.yMapSize = m_yMapSize;
+
     m_host.SendPacket(peerId, 0, &initializeGame, sizeof(Protocol::InitializeGamePacket));
 }
 

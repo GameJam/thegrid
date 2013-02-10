@@ -5,9 +5,6 @@
 #include <math.h>
 #include <assert.h>
 
-const int gridSpacing       = 150;
-const int xMapSize          = gridSpacing * 9;
-const int yMapSize          = gridSpacing * 6;
 const int yStatusBarSize    = 140;
 
 static void DrawCircle(const Vec2& point, int radius)
@@ -30,6 +27,7 @@ ClientGame::ClientGame(int xSize, int ySize)
 
     InitializeEntityTypes(m_entityTypes);
 
+    m_hasMap    = false;
     m_mapScale  = 1;
     m_xSize     = xSize;
     m_ySize     = ySize;
@@ -38,8 +36,9 @@ ClientGame::ClientGame(int xSize, int ySize)
     m_blipY     = 0;
     m_serverId  = -1;
     m_hoverStop = -1;
-
-    CenterMap(xMapSize / 2, yMapSize / 2);
+    m_xMapSize  = 0;
+    m_yMapSize  = 0;
+    m_gridSpacing = 0;
 
     UpdateActiveButtons();
 
@@ -89,6 +88,12 @@ void ClientGame::LoadResources()
 void ClientGame::Render() const
 {
 
+    if (!m_hasMap)
+    {
+        // TODO: proper state management!
+        return;
+    }
+
     const unsigned long lineColor[] = 
         {
             0xFF231F20,
@@ -128,9 +133,9 @@ void ClientGame::Render() const
     glColor(0xFFFFFFFF);
     glBegin(GL_QUADS);
     glVertex2i(-outerBorder, -outerBorder);
-    glVertex2i(xMapSize + outerBorder, -outerBorder);
-    glVertex2i(xMapSize + outerBorder, yMapSize + outerBorder);
-    glVertex2i(-outerBorder, yMapSize + outerBorder);
+    glVertex2i(m_xMapSize + outerBorder, -outerBorder);
+    glVertex2i(m_xMapSize + outerBorder, m_yMapSize + outerBorder);
+    glVertex2i(-outerBorder, m_yMapSize + outerBorder);
     glEnd();
 
     // Outer thick border of the map
@@ -138,29 +143,29 @@ void ClientGame::Render() const
     glLineWidth(2);
     glBegin(GL_LINE_LOOP);
     glVertex2i(-outerBorder, -outerBorder);
-    glVertex2i(xMapSize + outerBorder, -outerBorder);
-    glVertex2i(xMapSize + outerBorder, yMapSize + outerBorder);
-    glVertex2i(-outerBorder, yMapSize + outerBorder);
+    glVertex2i(m_xMapSize + outerBorder, -outerBorder);
+    glVertex2i(m_xMapSize + outerBorder, m_yMapSize + outerBorder);
+    glVertex2i(-outerBorder, m_yMapSize + outerBorder);
     glEnd();
 
     // Grid
     glColor(0xFF7FD6F2);
     glLineWidth(1);
     glBegin(GL_LINES);
-    for (int x = 0; x < xMapSize / gridSpacing; ++x)
+    for (int x = 0; x < m_xMapSize / m_gridSpacing; ++x)
     {
-        glVertex2i(x * gridSpacing, 0);
-        glVertex2i(x * gridSpacing, yMapSize);
+        glVertex2i(x * m_gridSpacing, 0);
+        glVertex2i(x * m_gridSpacing, m_yMapSize);
     }
-    glVertex2i(xMapSize, 0);
-    glVertex2i(xMapSize, yMapSize);
-    for (int y = 0; y < yMapSize / gridSpacing; ++y)
+    glVertex2i(m_xMapSize, 0);
+    glVertex2i(m_xMapSize, m_yMapSize);
+    for (int y = 0; y < m_yMapSize / m_gridSpacing; ++y)
     {
-        glVertex2i(0, y * gridSpacing);
-        glVertex2i(xMapSize, y * gridSpacing);
+        glVertex2i(0, y * m_gridSpacing);
+        glVertex2i(m_xMapSize, y * m_gridSpacing);
     }
-    glVertex2i(0, yMapSize);
-    glVertex2i(xMapSize, yMapSize);
+    glVertex2i(0, m_yMapSize);
+    glVertex2i(m_xMapSize, m_yMapSize);
     glEnd();
 
     // Rails.
@@ -206,20 +211,20 @@ void ClientGame::Render() const
     Font_BeginDrawing(m_font);
     glColor(0xFF7FD6F2);
     int fontHeight = Font_GetTextHeight(m_font);
-    for (int x = 0; x < xMapSize / gridSpacing; ++x)
+    for (int x = 0; x < m_xMapSize / m_gridSpacing; ++x)
     {
         char buffer[32];
         sprintf(buffer, "%d", x);
         int textWidth = Font_GetTextWidth(m_font, buffer);
-        Font_DrawText(buffer, x * gridSpacing + gridSpacing / 2 - textWidth / 2, -outerBorder + 5);
-        Font_DrawText(buffer, x * gridSpacing + gridSpacing / 2 - textWidth / 2, yMapSize + 5);
+        Font_DrawText(buffer, x * m_gridSpacing + m_gridSpacing / 2 - textWidth / 2, -outerBorder + 5);
+        Font_DrawText(buffer, x * m_gridSpacing + m_gridSpacing / 2 - textWidth / 2, m_yMapSize + 5);
     }
-    for (int y = 0; y < yMapSize / gridSpacing; ++y)
+    for (int y = 0; y < m_yMapSize / m_gridSpacing; ++y)
     {
         char buffer[32];
         sprintf(buffer, "%c", 'A' + y);
-        Font_DrawText(buffer, -outerBorder + 10, y * gridSpacing + gridSpacing / 2 - fontHeight / 2);
-        Font_DrawText(buffer, xMapSize + 10, y * gridSpacing + gridSpacing / 2 - fontHeight / 2);
+        Font_DrawText(buffer, -outerBorder + 10, y * m_gridSpacing + m_gridSpacing / 2 - fontHeight / 2);
+        Font_DrawText(buffer, m_xMapSize + 10, y * m_gridSpacing + m_gridSpacing / 2 - fontHeight / 2);
     }
     Font_EndDrawing();
 
@@ -487,7 +492,13 @@ void ClientGame::SendOrder(Protocol::OrderPacket& order)
 void ClientGame::OnInitializeGame(Protocol::InitializeGamePacket& packet)
 {
     LogDebug("Initializing game with seed %i", packet.mapSeed);
-    m_map.Generate(xMapSize, yMapSize, packet.mapSeed);
+    m_xMapSize = packet.xMapSize;
+    m_yMapSize = packet.yMapSize;
+    m_gridSpacing = packet.gridSpacing;
+    m_map.Generate(m_xMapSize, m_yMapSize, packet.mapSeed);
+    CenterMap(m_xMapSize / 2, m_yMapSize / 2);
+
+    m_hasMap = true;
 }
 
 void ClientGame::GetButtonRect(ButtonId buttonId, int& x, int& y, int& xSize, int& ySize) const

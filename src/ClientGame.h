@@ -112,7 +112,11 @@ private:
     int         m_blipX;
     int         m_blipY;
 
+    bool        m_hasMap;
     Map         m_map;
+    int         m_xMapSize;
+    int         m_yMapSize;
+    int         m_gridSpacing;
 
     Host        m_host;
     int         m_serverId;
