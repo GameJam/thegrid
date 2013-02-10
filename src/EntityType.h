@@ -8,6 +8,7 @@ enum EntityTypeId
 {
     EntityTypeId_Test,
     EntityTypeId_Agent,
+    EntityTypeId_Building,
     EntityTypeId_Count
 };
 
