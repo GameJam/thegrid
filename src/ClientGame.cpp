@@ -44,6 +44,7 @@ static bool NotificationBounceFunc(Particle& particle, float deltaTime)
 
     float scale = sinf(kPi * particle.time / kDuration);
     particle.scale = Vec2(scale, scale);
+    particle.color = 0xffffff | (Clamp(static_cast<int>(255*scale), 0, 255) << 24);
     return true;
 
 }
@@ -581,8 +582,6 @@ void ClientGame::OnMouseDown(int x, int y, int button)
             
             int xWorld, yWorld;
             ScreenToWorld(x, y, xWorld, yWorld);
-
-            AddNotificationParticle(&m_notificationAgentCaptured, xWorld, yWorld);
 
             int stopUnderCursor = m_map.GetStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
 
