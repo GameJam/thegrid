@@ -116,6 +116,7 @@ ClientGame::~ClientGame()
     BASS_SampleFree(m_soundHack);
     BASS_SampleFree(m_soundPickup);
     BASS_SampleFree(m_soundTrain);
+    BASS_SampleFree(m_soundCrime);
 
     if (m_server)
     {
@@ -178,6 +179,7 @@ void ClientGame::LoadResources()
     m_soundHack     = BASS_SampleLoad(false, "assets/sound_hack.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
     m_soundPickup   = BASS_SampleLoad(false, "assets/sound_pickup.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
     m_soundTrain    = BASS_SampleLoad(false, "assets/sound_train.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+    m_soundCrime    = BASS_SampleLoad(false, "assets/sound_crime.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
 
 }
 
@@ -1000,6 +1002,7 @@ void ClientGame::OnNotification(Protocol::NotificationPacket& packet)
         {
             const Stop& stop = m_map.GetStop(packet.stop);        
             AddNotificationParticle(&m_notificationCrime, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+            PlaySample(m_soundCrime);
         }
         break;
     case Protocol::Notification_AgentLost:

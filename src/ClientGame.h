@@ -146,6 +146,7 @@ private:
     HSAMPLE             m_soundHack;
     HSAMPLE             m_soundPickup;
     HSAMPLE             m_soundTrain;
+    HSAMPLE             m_soundCrime;
 
     MapState            m_mapState;
     ButtonId            m_activeButton;
