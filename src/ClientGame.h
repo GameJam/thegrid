@@ -103,7 +103,11 @@ private:
     int         m_mapY;
 
     HSTREAM     m_music;
-    HSAMPLE     m_testSound;
+    HSAMPLE     m_soundAction;
+    HSAMPLE     m_soundDeath;
+    HSAMPLE     m_soundDrop;
+    HSAMPLE     m_soundHack;
+    HSAMPLE     m_soundPickup;
 
     MapState    m_mapState;
     ButtonId    m_activeButton;

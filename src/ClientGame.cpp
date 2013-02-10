@@ -53,7 +53,11 @@ ClientGame::ClientGame(int xSize, int ySize)
 ClientGame::~ClientGame()
 {
     BASS_StreamFree(m_music);
-    BASS_SampleFree(m_testSound);
+    BASS_SampleFree(m_soundAction);
+    BASS_SampleFree(m_soundDeath);
+    BASS_SampleFree(m_soundDrop);
+    BASS_SampleFree(m_soundHack);
+    BASS_SampleFree(m_soundPickup);
 }
 
 void ClientGame::LoadResources()
@@ -91,7 +95,11 @@ void ClientGame::LoadResources()
 
     Font_Load(m_font, "assets/font.csv");
 
-    m_testSound = BASS_SampleLoad(false, "assets/test.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+    m_soundAction   = BASS_SampleLoad(false, "assets/sound_action.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+    m_soundDeath    = BASS_SampleLoad(false, "assets/sound_death.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+    m_soundDrop     = BASS_SampleLoad(false, "assets/sound_drop.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+    m_soundHack     = BASS_SampleLoad(false, "assets/sound_hack.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+    m_soundPickup   = BASS_SampleLoad(false, "assets/sound_pickup.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
 
 }
 
@@ -467,7 +475,24 @@ void ClientGame::OnMouseMove(int x, int y)
 
 void ClientGame::OnButtonPressed(ButtonId buttonId)
 {
-    PlaySample(m_testSound);
+    switch (buttonId)
+    {
+    case ButtonId_Infiltrate:
+        PlaySample(m_soundAction);
+        break;
+    case ButtonId_Capture:
+        PlaySample(m_soundDeath);
+        break;
+    case ButtonId_Stakeout:
+        PlaySample(m_soundAction);
+        break;
+    case ButtonId_Hack:
+        PlaySample(m_soundHack);
+        break;
+    case ButtonId_Intel:
+        PlaySample(m_soundPickup);
+        break;
+    }
 }
 
 void ClientGame::ScreenToWorld(int xScreen, int yScreen, int& xWorld, int& yWorld) const
