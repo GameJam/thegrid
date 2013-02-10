@@ -12,6 +12,8 @@
 
 #include <bass.h>
 
+class AgentEntity;
+
 class ClientGame : Host::Handler
 {
 
@@ -86,6 +88,10 @@ private:
 
     void PlaySample(HSAMPLE sample);
 
+    int GetAgentUnderCursor(int xScreen, int yScreen) const;
+
+    Vec2 GetAgentPosition(const AgentEntity* agent) const;
+
 private:
   
     int         m_xSize;
@@ -134,6 +140,7 @@ private:
     ClientWorldState    m_state;
 
     int         m_hoverStop;
+    int         m_selectedAgent;
 
 };
 

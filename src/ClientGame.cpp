@@ -40,6 +40,7 @@ ClientGame::ClientGame(int xSize, int ySize)
     m_xMapSize  = 0;
     m_yMapSize  = 0;
     m_gridSpacing = 0;
+    m_selectedAgent = -1;
 
     UpdateActiveButtons();
 
@@ -250,12 +251,8 @@ void ClientGame::Render() const
         case EntityTypeId_Agent:
             {
                 const AgentEntity* agent = static_cast<const AgentEntity*>(entity);
-                int stop = agent->GetCurrentStop();
-                if (stop != -1)
-                {
-                    Vec2 position = m_map.GetStop(stop).point;
-                    Render_DrawSprite(m_agentTexture, static_cast<int>(position.x), static_cast<int>(position.y));
-                }
+                Vec2 position = GetAgentPosition(agent);
+                Render_DrawSprite(m_agentTexture, static_cast<int>(position.x) - m_agentTexture.xSize / 2, static_cast<int>(position.y) - m_agentTexture.ySize / 2);
             }
             break;
         }
@@ -314,14 +311,21 @@ void ClientGame::OnMouseDown(int x, int y, int button)
         }
         else if (y < m_ySize - yStatusBarSize)
         {
-            // Toggle zoom on left click.
-            if (m_mapScale == 1)
+            bool hasSelection = (m_selectedAgent != -1);
+            m_selectedAgent = GetAgentUnderCursor(x, y);
+            UpdateActiveButtons();
+            // First click deselects.
+            if (m_selectedAgent == -1 && !hasSelection)
             {
-                SetMapScale(2, x, y);
-            }
-            else
-            {
-                SetMapScale(1, x, y);
+                // Toggle zoom on left click.
+                if (m_mapScale == 1)
+                {
+                    SetMapScale(2, x, y);
+                }
+                else
+                {
+                    SetMapScale(1, x, y);
+                }
             }
         }
 
@@ -352,6 +356,45 @@ void ClientGame::OnMouseDown(int x, int y, int button)
         }
     }
 
+}
+
+int ClientGame::GetAgentUnderCursor(int xScreen, int yScreen) const
+{
+
+    int xWorld, yWorld;
+    ScreenToWorld(xScreen, yScreen, xWorld, yWorld);
+
+    for (int i = 0; i < m_state.GetNumEntities(); ++i)
+    {
+        const Entity* entity = m_state.GetEntity(i);
+        if (entity->GetTypeId() == EntityTypeId_Agent)
+        {
+            const AgentEntity* agent = static_cast<const AgentEntity*>(entity);
+            Vec2 position = GetAgentPosition(agent);
+
+            if (xWorld >= position.x - m_agentTexture.xSize / 2 &&
+                yWorld >= position.y - m_agentTexture.ySize / 2 &&
+                xWorld <= position.x + m_agentTexture.xSize / 2 &&
+                yWorld <= position.y + m_agentTexture.ySize / 2)
+            {
+                return agent->GetId();
+            }
+        }
+        
+    }
+
+    return -1;
+
+}
+
+Vec2 ClientGame::GetAgentPosition(const AgentEntity* agent) const
+{
+    int stop = agent->GetCurrentStop();
+    if (stop != -1)
+    {
+        return m_map.GetStop(stop).point;
+    }
+    return Vec2(0.0f, 0.0f);
 }
 
 void ClientGame::OnMouseUp(int x, int y, int button)
@@ -401,7 +444,14 @@ void ClientGame::OnMouseMove(int x, int y)
     {
         int xWorld, yWorld;
         ScreenToWorld(x, y, xWorld, yWorld);
-        m_hoverStop = m_map.GetStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
+        if (GetAgentUnderCursor(x, y) == -1)
+        {
+            m_hoverStop = m_map.GetStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
+        }
+        else
+        {
+            m_hoverStop = -1;
+        }
     }
 }
 
@@ -522,9 +572,10 @@ void ClientGame::GetButtonRect(ButtonId buttonId, int& x, int& y, int& xSize, in
 
 void ClientGame::UpdateActiveButtons()
 {
+    bool selection = (m_selectedAgent != -1);
     for (int i = 0; i < ButtonId_NumButtons; ++i)
     {
-        m_button[i].enabled = true;
+        m_button[i].enabled = selection;
     }
     m_activeButton = ButtonId_None;
     m_activeButtonDown = false;
