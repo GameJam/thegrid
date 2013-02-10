@@ -541,7 +541,8 @@ int ClientGame::GetAgentUnderCursor(int xScreen, int yScreen) const
     {
         Vec2 position = GetAgentPosition(agent);
 
-        if (xWorld >= position.x - m_agentTexture.xSize / 2 &&
+        if (agent->GetId() != m_selectedAgent &&
+            xWorld >= position.x - m_agentTexture.xSize / 2 &&
             yWorld >= position.y - m_agentTexture.ySize / 2 &&
             xWorld <= position.x + m_agentTexture.xSize / 2 &&
             yWorld <= position.y + m_agentTexture.ySize / 2)
