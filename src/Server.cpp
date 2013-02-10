@@ -3,6 +3,7 @@
 #include "Log.h"
 #include "Map.h"
 #include "BuildingEntity.h"
+#include "PlayerEntity.h"
 
 #include <SDL.h>
 #include <algorithm>
@@ -18,8 +19,13 @@ Server::Client::Client(int id, Server& server)
 
     m_random.Seed(SDL_GetTicks());
 
-    const int numAgents = 3;
+    const int numAgents     = 3;
     const int numSafeHouses = 3;
+
+    PlayerEntity* player = new PlayerEntity();
+    m_player = player;
+    sprintf(m_player->m_name, "Mr. %c", 'Q' + (id % 10));
+    m_state->AddEntity(player);
 
     for (int i = 0; i < numAgents; ++i)
     {

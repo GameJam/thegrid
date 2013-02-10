@@ -14,6 +14,7 @@
 #include <hash_map>
 
 class Map;
+class PlayerEntity;
 
 class Server : public Host::Handler
 {
@@ -42,6 +43,7 @@ public:
         EntityState*        m_state;
         Random              m_random;
         AgentList           m_agents;
+        PlayerEntity*       m_player;
 
     };
 

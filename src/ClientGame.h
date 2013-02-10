@@ -121,6 +121,7 @@ private:
     HSAMPLE     m_soundDrop;
     HSAMPLE     m_soundHack;
     HSAMPLE     m_soundPickup;
+    HSAMPLE     m_soundTrain;
 
     MapState    m_mapState;
     ButtonId    m_activeButton;
@@ -138,6 +139,7 @@ private:
     Texture     m_buildingPoliceTexture;
     Texture     m_buttonTexture[ButtonId_NumButtons];
     Texture     m_buttonShadowTexture;
+    Texture     m_playerPortraitTexture;
 
     Button      m_button[ButtonId_NumButtons];
 

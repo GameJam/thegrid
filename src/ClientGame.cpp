@@ -3,6 +3,7 @@
 #include "Entity.h"
 #include "AgentEntity.h"
 #include "BuildingEntity.h"
+#include "PlayerEntity.h"
 #include "Utility.h"
 
 #include <math.h>
@@ -77,6 +78,7 @@ ClientGame::~ClientGame()
     BASS_SampleFree(m_soundDrop);
     BASS_SampleFree(m_soundHack);
     BASS_SampleFree(m_soundPickup);
+    BASS_SampleFree(m_soundTrain);
 }
 
 void ClientGame::LoadResources()
@@ -104,6 +106,7 @@ void ClientGame::LoadResources()
             { &m_buttonTexture[ButtonId_Hack],          "assets/action_hack.png"        },
             { &m_buttonTexture[ButtonId_Intel],         "assets/action_drop.png"        },
             { &m_buttonShadowTexture,                   "assets/button_shadow.png"      },
+            { &m_playerPortraitTexture,                 "assets/player_portrait.png"    },
         };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -119,6 +122,7 @@ void ClientGame::LoadResources()
     m_soundDrop     = BASS_SampleLoad(false, "assets/sound_drop.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
     m_soundHack     = BASS_SampleLoad(false, "assets/sound_hack.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
     m_soundPickup   = BASS_SampleLoad(false, "assets/sound_pickup.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+    m_soundTrain    = BASS_SampleLoad(false, "assets/sound_train.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
 
 }
 
@@ -147,8 +151,6 @@ void ClientGame::Render() const
 
     glClearColor( 0.97f * 0.9f, 0.96f * 0.9f, 0.89f * 0.9f, 0.0f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-    //glEnable(GL_MULTISAMPLE);
 
     glHint(GL_LINE_SMOOTH_HINT, GL_NICEST );
     glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST );
@@ -374,6 +376,20 @@ void ClientGame::Render() const
         }
     }
 
+    // Show the players.
+    glColor(0xFFFFFFFF);
+    int numPlayers = 0;
+    for (int i = 0; i < m_state.GetNumEntities(); ++i)
+    {
+        const Entity* entity = m_state.GetEntity(i);
+        if (entity->GetTypeId() == EntityTypeId_Player)
+        {
+            const PlayerEntity* player = static_cast<const PlayerEntity*>(entity);
+            Render_DrawSprite(m_playerPortraitTexture, m_xSize - m_playerPortraitTexture.xSize - 20, 20 + (m_playerPortraitTexture.ySize + 20) * numPlayers);
+            ++numPlayers;
+        }
+    }
+
     Font_BeginDrawing(m_font);
     glColor(0xFF000000);
     char timeBuffer[32];
@@ -418,6 +434,8 @@ void ClientGame::OnMouseDown(int x, int y, int button)
                 order.agentId = m_selectedAgent;
                 order.targetStop = stopUnderCursor;
                 SendOrder(order);
+                // TODO: play in response from the server?
+                PlaySample(m_soundTrain);
             }
             else
             {

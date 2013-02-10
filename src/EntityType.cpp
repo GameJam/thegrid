@@ -4,6 +4,7 @@
 
 #include "AgentEntity.h"
 #include "BuildingEntity.h"
+#include "PlayerEntity.h"
 
 EntityTypeId EntityType::GetTypeId()
 {
@@ -16,4 +17,5 @@ void InitializeEntityTypes(EntityTypeList& entityTypes)
     entityTypes[EntityTypeId_Test] = new StructEntityType<TestEntity>(EntityTypeId_Test, "Test");
     entityTypes[EntityTypeId_Agent] = new StructEntityType<AgentEntity>(EntityTypeId_Agent, "Agent");
     entityTypes[EntityTypeId_Building] = new StructEntityType<BuildingEntity>(EntityTypeId_Building, "Building");
+    entityTypes[EntityTypeId_Player] = new StructEntityType<PlayerEntity>(EntityTypeId_Player, "Player");
 }
