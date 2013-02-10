@@ -38,6 +38,10 @@ Server::Client::Client(int id, Server& server)
 
         int stop = static_cast<int>(m_random.Generate(0, m_map->GetNumStops() - 1));
         agent->m_currentStop = stop;
+        if (agent->m_intel != -1)
+        {
+            m_server->GetIntel(agent->m_intel).m_stop = stop;
+        }
     }
 
     for (int i = 0; i < numSafeHouses; ++i)
@@ -237,6 +241,17 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
         Infiltrate(agent);
         break;
 
+    case Protocol::Order_Intel:
+        if (agent->m_intel == -1)
+        {
+            TakeIntel(agent);
+        }
+        else
+        {
+            DropIntel(agent);
+        }
+        break;
+
     }
     
 }
@@ -265,6 +280,50 @@ void Server::Client::Infiltrate(AgentEntity* agent)
     if (!infiltrated)
     {
         m_server->NotifyCrime(agent->GetId(), agent->m_currentStop);
+    }
+
+}
+
+void Server::Client::TakeIntel(AgentEntity* agent)
+{
+    if (agent->m_intel != -1)
+    {
+        return;
+    }
+
+    int intel = m_server->GetIntelAtStop(agent->m_currentStop);
+    if (intel != -1)
+    {
+        int clientId = agent->GetOwnerId();
+
+        IntelData& intelData = m_server->GetIntel(intel);
+        intelData.m_agentId = agent->GetId();
+        intelData.m_owner = clientId;
+        m_server->SendNotification(clientId, Protocol::Notification_IntelCaptured, agent->GetId(), agent->m_currentStop, -1);
+        agent->m_intel = intel;
+
+    }
+}
+
+void Server::Client::DropIntel(AgentEntity* agent)
+{
+    if (agent->m_intel == -1)
+    {
+        return;
+    }
+
+    int index = 0;
+    BuildingEntity* safeHouse;
+    while (m_state->GetNextEntityWithType(index, safeHouse))
+    {
+        if ((safeHouse->m_stop == agent->m_currentStop) &&
+            (safeHouse->GetOwnerId() == agent->GetOwnerId()))
+        {
+            ++safeHouse->m_numIntels;
+            IntelData& intelData = m_server->GetIntel(agent->m_intel);
+            intelData.m_inHouse = true;
+            intelData.m_agentId = -1;
+        }
     }
 
 }
@@ -389,7 +448,7 @@ Server::Server()
         for (int attempt = 0; attempt < 32; ++attempt)
         {
             stop = m_random.Generate(0, m_map.GetNumStops() - 1);
-            if (GetNumIntelsAtStop(stop) == 0)
+            if (GetIntelAtStop(stop) == -1)
             {
                 break;
             }
@@ -479,6 +538,17 @@ void Server::NotifyCrime(int agentId, int stop)
         client->NotifyCrime(agentId, stop);
     }
 }
+
+int Server::GetNumIntels() const
+{
+    return static_cast<int>(m_intelList.size());
+}
+
+Server::IntelData& Server::GetIntel(int intel)
+{
+    return m_intelList[intel];
+}
+
 
 void Server::OnPacket(int peerId, int channel, void* data, size_t size)
 {
@@ -591,17 +661,17 @@ void Server::SendClientState(int clientId)
 
 }
 
-int Server::GetNumIntelsAtStop(int stop)
+int Server::GetIntelAtStop(int stop)
 {
     int result = 0;
     for (size_t i = 0; i < m_intelList.size(); ++i)
     {
-        if (m_intelList[i].m_stop == stop)
+        if (m_intelList[i].m_stop == stop && !m_intelList[i].m_inHouse && m_intelList[i].m_agentId == -1)
         {
-            ++result;
+            return static_cast<int>(i);
         }
     }
-    return result;
+    return -1;
 }
 
 int Server::PingIntel(int clientId, int lastPinged)

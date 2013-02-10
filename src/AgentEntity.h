@@ -20,7 +20,7 @@ public:
     AgentEntity();
     
     int     m_currentStop;
-    bool    m_hasIntel;
+    int     m_intel;
     State   m_state;
     
     // Movement hack

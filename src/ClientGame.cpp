@@ -371,7 +371,7 @@ void ClientGame::Render()
                 {
                     Render_DrawSprite(m_agentStakeoutTexture, static_cast<int>(position.x) - m_agentStakeoutTexture.xSize / 2, static_cast<int>(position.y) - m_agentStakeoutTexture.ySize / 2);
                 }
-                else if (agent->m_hasIntel)
+                else if (agent->m_intel != -1)
                 {
                     Render_DrawSprite(m_agentIntelTexture, static_cast<int>(position.x) - m_agentIntelTexture.xSize / 2, static_cast<int>(position.y) - m_agentIntelTexture.ySize / 2);
                 }
@@ -1070,14 +1070,17 @@ void ClientGame::UpdateActiveButtons()
     if (structure == StructureType_House)
     {
         buttonEnabled[ButtonId_Hack] = false;
-        if (agent != NULL && !agent->m_hasIntel)
+        if (agent != NULL && agent->m_intel == -1)
         {
             buttonEnabled[ButtonId_Intel] = false;
         }
     }
     else
     {
-        buttonEnabled[ButtonId_Intel] = false;
+        if (agent != NULL && agent->m_intel != -1)
+        {
+            buttonEnabled[ButtonId_Intel] = false;
+        }
     }
 
     if (structure != StructureType_None && structure != StructureType_House)
