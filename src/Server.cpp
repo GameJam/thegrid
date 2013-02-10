@@ -2,13 +2,19 @@
 
 #include "Log.h"
 
-Server::Client::Client(int id)
+Server::Client::Client(int id, EntityTypeList* entityTypes) : m_state(entityTypes)
 {
+
     m_id = id;
-    m_state.m_id = id;
-    m_state.m_test.resize(id + 1);
-    m_state.m_test[id].x = 0;
-    m_state.m_test[id].x = 0;
+
+    m_testEntity = new TestEntity();
+    m_state.AddEntity(m_testEntity);
+
+    
+    m_testEntity->x = 0;
+    m_testEntity->y = 0;
+    m_testEntity->clientId = id;
+
 }
 
 int Server::Client::GetId() const
@@ -18,8 +24,8 @@ int Server::Client::GetId() const
 
 void Server::Client::GetTest(int& x, int& y)
 {
-    x = m_state.m_test[m_id].x;
-    y = m_state.m_test[m_id].y;
+    x = m_testEntity->x;
+    y = m_testEntity->y;
 }
 
 void Server::Client::Update(Server& server)
@@ -34,27 +40,42 @@ void Server::Client::Update(Server& server)
 
     for (size_t i = 0; i < clients.size(); ++i)
     {
-        if (clients[i] == this)
+
+        Client* client = clients[i];
+        if (client == this)
         {
             continue;
         }
         
-        Client* client = clients[i];
-        if (static_cast<size_t>(client->m_id) >= m_state.m_test.size())
+        TestEntity* spiedEntity = NULL;
+
+        stdext::hash_map<int, TestEntity*>::iterator iter = m_spiedTestEntities.find(client->GetId());
+        if (iter == m_spiedTestEntities.end())
         {
-            m_state.m_test.resize(client->m_id + 1);
+            // new entity found!
+            spiedEntity = new TestEntity();
+            spiedEntity->clientId = client->GetId();
+            m_state.AddEntity(spiedEntity);
         }
-        client->GetTest(m_state.m_test[client->m_id].x, m_state.m_test[client->m_id].y);
+        else
+        {
+            spiedEntity = iter->second;
+        }
+
+        client->GetTest(spiedEntity->x, spiedEntity->y);
+
     }
 
     
     // 3. Send new state
-    size_t packetSize = m_state.GetSerializedSize() + sizeof(Protocol::StatePacket);
+    size_t dataSize = m_state.GetSerializedSize();
+    size_t packetSize = dataSize + sizeof(Protocol::StatePacketHeader);
     char* buffer = new char[packetSize];
 
     Protocol::StatePacket* packet = reinterpret_cast<Protocol::StatePacket*>(buffer);
-    packet->packetType = Protocol::PacketType_State;
-    m_state.Serialize(packet->data);
+    packet->header.packetType = Protocol::PacketType_State;
+    packet->header.dataSize = dataSize;
+    m_state.Serialize(packet->data, dataSize);
     server.GetHost().SendPacket(m_id, 0, packet, packetSize);
     delete[] buffer;
 
@@ -65,8 +86,8 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
     
     LogDebug("Client %i ordered move to %i, %i", m_id, order.x, order.y);
     
-    m_state.m_test[m_id].x = order.x;
-    m_state.m_test[m_id].y = order.y;
+    m_testEntity->x = order.x;
+    m_testEntity->y = order.y;
 
 }
 
@@ -75,6 +96,8 @@ Server::Server() : m_host(1)
     m_host.Listen(12345);
 
     m_mapSeed = 42;
+
+    InitializeEntityTypes(m_entityTypes);
 }
 
 Server::~Server()
@@ -100,7 +123,7 @@ void Server::Update()
 
 void Server::OnConnect(int peerId)
 {
-    m_clientMap[peerId] = new Client(peerId);
+    m_clientMap[peerId] = new Client(peerId, &m_entityTypes);
 
     Protocol::InitializeGamePacket initializeGame;
     initializeGame.packetType = Protocol::PacketType_InitializeGame;

@@ -5,6 +5,8 @@
 
 #include "Protocol.h"
 #include "ClientWorldState.h"
+#include "Entity.h"
+#include "EntityType.h"
 
 #include <hash_map>
 
@@ -16,7 +18,7 @@ public:
     class Client
     {
     public:
-        Client(int id);
+        Client(int id, EntityTypeList* entityTypes);
 
         int GetId() const;
 
@@ -27,8 +29,11 @@ public:
         void GetTest(int& x, int& y);
 
     private:
-        int m_id;
-        ClientWorldState m_state;
+        int                 m_id;
+        ClientWorldState    m_state;
+        TestEntity*         m_testEntity;
+        stdext::hash_map<int, TestEntity*> m_spiedTestEntities;
+
     };
 
     typedef std::vector<Client*> ClientList;
@@ -51,10 +56,11 @@ private:
 
     typedef stdext::hash_map<int, Client*> ClientMap;
 
-    Host        m_host;
-    ClientMap   m_clientMap;
+    Host            m_host;
+    ClientMap       m_clientMap;
+    EntityTypeList  m_entityTypes;
     
-    int         m_mapSeed;
+    int             m_mapSeed;
 
 };
 

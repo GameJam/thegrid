@@ -1,5 +1,6 @@
 #include "ClientGame.h"
 #include "Log.h"
+#include "Entity.h"
 
 #include <math.h>
 #include <assert.h>
@@ -22,8 +23,13 @@ static void DrawCircle(const Vec2& point, int radius)
     glEnd();
 }
 
-ClientGame::ClientGame(int xSize, int ySize) : m_host(1)
+ClientGame::ClientGame(int xSize, int ySize) 
+    : m_host(1),
+      m_testState(&m_entityTypes)
 {
+
+    InitializeEntityTypes(m_entityTypes);
+
     m_mapScale  = 1;
     m_xSize     = xSize;
     m_ySize     = ySize;
@@ -34,6 +40,7 @@ ClientGame::ClientGame(int xSize, int ySize) : m_host(1)
     m_hoverStop = -1;
 
     CenterMap(xMapSize / 2, yMapSize / 2);
+
     UpdateActiveButtons();
 
     m_music = BASS_StreamCreateFile(FALSE, "assets/slow march.mp3", 0, 0, BASS_SAMPLE_LOOP);
@@ -220,9 +227,13 @@ void ClientGame::Render() const
     glEnable(GL_TEXTURE_2D);    
     glColor(0xFFFFFFFF);
 
-    for (size_t i = 0; i < m_testState.m_test.size(); ++i)
+    for (int i = 0; i < m_testState.GetNumEntities(); ++i)
     {
-        Render_DrawSprite(m_agentTexture, m_testState.m_test[i].x, m_testState.m_test[i].y);
+        const Entity* entity = m_testState.GetEntity(i);
+        
+        // HACK!
+        const TestEntity* testEntity = static_cast<const TestEntity*>(entity);
+        Render_DrawSprite(m_agentTexture, testEntity->x, testEntity->y);
     }
 
     // Draw the UI.
@@ -418,12 +429,6 @@ void ClientGame::Connect(const char* hostName, int port)
 void ClientGame::Update()
 {
     m_host.Service(this);
-
-    if (m_testState.m_id != -1)
-    {
-        m_blipX = m_testState.m_test[m_testState.m_id].x;
-        m_blipY = m_testState.m_test[m_testState.m_id].y;
-    }
 }
 
 void ClientGame::OnConnect(int peerId)
@@ -455,7 +460,7 @@ void ClientGame::OnPacket(int peerId, int channel, void* data, size_t size)
         case Protocol::PacketType_State:
             {
                 Protocol::StatePacket* packet = static_cast<Protocol::StatePacket*>(data);
-                m_testState.Deserialize(packet->data);
+                m_testState.Deserialize(packet->data, packet->header.dataSize);
             }
             break;
 

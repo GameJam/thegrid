@@ -24,9 +24,15 @@ struct OrderPacket
     int x, y;
 };
 
-struct StatePacket
+struct StatePacketHeader
 {
     char packetType;
+    size_t dataSize;
+};
+
+struct StatePacket
+{
+    StatePacketHeader header;
     char data[1];
 };
 
