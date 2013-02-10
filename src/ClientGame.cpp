@@ -182,21 +182,6 @@ void ClientGame::Render()
         return;
     }
 
-    const unsigned long lineColor[] = 
-        {
-            //0xFF231F20,
-            0xFFDD83B6,
-            0xFFF19526,
-            0xFF949599,
-            0xFFB31B64,
-            0xFF39349A,
-            0xFFE31F21,
-            0xFF02A353,
-            0xFF0098DF,
-        };
-
-    int numLines = sizeof(lineColor) / sizeof(unsigned long);
-
     glClearColor( 0.97f * 0.9f, 0.96f * 0.9f, 0.89f * 0.9f, 0.0f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
@@ -308,7 +293,7 @@ void ClientGame::Render()
         const Stop& stop1 = m_map.GetStop(rail.stop1);
         const Stop& stop2 = m_map.GetStop(rail.stop2);
         assert(rail.line >= 0);
-        unsigned long color = lineColor[rail.line % numLines];
+        unsigned long color = m_map.GetLineColor(rail.line);
         // Draw the rails partially transparent to make the buldings more readable.
         color = (color & 0x00FFFFFF) | 0x90000000;
         glColor( color );
@@ -336,7 +321,7 @@ void ClientGame::Render()
         }
         else
         {
-            glColor( lineColor[stop.line % numLines] );
+            glColor( m_map.GetLineColor(stop.line) );
             DrawCircle(stop.point, 8.0f + inflate);
         }
     }

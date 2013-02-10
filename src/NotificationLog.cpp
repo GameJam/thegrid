@@ -9,6 +9,17 @@ const float kPi = 3.14159265359f;
 
 const int kNumEntries = 4;
 
+const char* kNotificationText[Protocol::Notification_Count] = {
+    "Enemy agent captured!",
+    "Your agent mysteriously disappeared!",
+    "Incoming intel location tip",
+    "Intel retrieved successfully!",
+    "Suspicious activity reported",
+    "Ticket purchased on ",
+    "Enemy agent spotted!",
+    "Safe house compromised!"
+};
+
 static bool NotificationBounceFunc(Particle& particle, float deltaTime)
 {
 
@@ -55,7 +66,7 @@ void NotificationLog::Draw(int xSize, int ySize)
     const int fontHeight = Font_GetTextHeight(*m_font);
     const int rowSpacing = 8;
 
-    int logWidth = xSize / 3;
+    int logWidth = xSize / 2;
 
     int rowY = ySize - (fontHeight + rowSpacing)*kNumEntries;
 
@@ -63,9 +74,21 @@ void NotificationLog::Draw(int xSize, int ySize)
     glColor(0xff000000);
     for (size_t i = firstEntry; i < m_entries.size(); ++i)
     {
-        char buffer[1024];
-        sprintf(buffer, "%.2f: Alert %d", m_entries[i].time, m_entries[i].packet.notification);
-        Font_DrawText(buffer, xSize - logWidth, rowY);
+        Protocol::Notification notification = m_entries[i].packet.notification;
+        const char* text = kNotificationText[notification];
+        Font_DrawText(text, xSize - logWidth, rowY);
+        
+        if (notification == Protocol::Notification_LineUsed)
+        {
+            int xOffset = Font_GetTextWidth(*m_font, text);
+            int line = m_entries[i].packet.line;
+            char lineBuffer[1024];
+            sprintf(lineBuffer, "line %i", line + 1);
+            glColor(m_map->GetLineColor(line));
+            Font_DrawText(lineBuffer, xSize - logWidth + xOffset, rowY);
+            glColor(0xff000000);
+        }
+
         rowY += fontHeight + rowSpacing;
 
     }
