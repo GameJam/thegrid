@@ -827,7 +827,7 @@ void ClientGame::OnButtonPressed(ButtonId buttonId)
         PlaySample(m_soundAction);
         break;
     case ButtonId_Capture:
-        PlaySample(m_soundDeath);
+        PlaySample(m_soundAction);
         break;
     case ButtonId_Stakeout:
         PlaySample(m_soundAction);
