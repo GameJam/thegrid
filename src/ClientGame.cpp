@@ -563,7 +563,7 @@ void ClientGame::Render()
         {
             Render_DrawSprite(m_playerEliminatedTexture,
                 m_xSize - 250,
-                20 + 130 * i);
+                20 + (playerBoxHeight + 15) * i);
         }
     }
 
