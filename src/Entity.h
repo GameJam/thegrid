@@ -8,10 +8,11 @@ class Entity
 
 public:
 
+    Entity(EntityTypeId typeId);
+
     void SetId(int id);
     int GetId() const;
 
-    void SetTypeId(EntityTypeId typeId);
     EntityTypeId GetTypeId() const;
 
 protected:
@@ -26,6 +27,8 @@ class TestEntity : public Entity
 {
 
 public:
+    TestEntity() : Entity(EntityTypeId_Test) {}
+
     int clientId;
     int x;
     int y;

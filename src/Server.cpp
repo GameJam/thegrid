@@ -1,31 +1,33 @@
 #include "Server.h"
 
 #include "Log.h"
+#include "Map.h"
 
-Server::Client::Client(int id, EntityTypeList* entityTypes) : m_state(entityTypes)
+#include <SDL.h>
+
+Server::Client::Client(int id, Map* map, EntityTypeList* entityTypes) : m_state(entityTypes)
 {
 
     m_id = id;
+    m_map = map;
+    m_random.Seed(SDL_GetTicks());
+    m_state.SetClientId(id);
 
-    m_testEntity = new TestEntity();
-    m_state.AddEntity(m_testEntity);
+    for (int i = 0; i < 3; ++i)
+    {
+        AgentEntity* agent = new AgentEntity();
+        int stop = static_cast<int>(m_random.Generate(0, m_map->GetNumStops() - 1));
+        agent->SetCurrentStop(stop);
 
-    
-    m_testEntity->x = 0;
-    m_testEntity->y = 0;
-    m_testEntity->clientId = id;
+        m_agents.push_back(agent);
+        m_state.AddEntity(agent);
+    }
 
 }
 
 int Server::Client::GetId() const
 {
     return m_id;
-}
-
-void Server::Client::GetTest(int& x, int& y)
-{
-    x = m_testEntity->x;
-    y = m_testEntity->y;
 }
 
 void Server::Client::Update(Server& server)
@@ -35,6 +37,7 @@ void Server::Client::Update(Server& server)
     
     
     // 2. Update state
+    /*
     ClientList clients;
     server.GetClients(clients);
 
@@ -66,19 +69,8 @@ void Server::Client::Update(Server& server)
         client->GetTest(spiedEntity->x, spiedEntity->y);
 
     }
+    */
 
-    
-    // 3. Send new state
-    size_t dataSize = m_state.GetSerializedSize();
-    size_t packetSize = dataSize + sizeof(Protocol::StatePacketHeader);
-    char* buffer = new char[packetSize];
-
-    Protocol::StatePacket* packet = reinterpret_cast<Protocol::StatePacket*>(buffer);
-    packet->header.packetType = Protocol::PacketType_State;
-    packet->header.dataSize = dataSize;
-    m_state.Serialize(packet->data, dataSize);
-    server.GetHost().SendPacket(m_id, 0, packet, packetSize);
-    delete[] buffer;
 
 }
 
@@ -92,6 +84,11 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
 
 }
 
+const ClientWorldState& Server::Client::GetState() const
+{
+    return m_state;
+}
+
 Server::Server() : m_host(1)
 {
     m_host.Listen(12345);
@@ -102,6 +99,8 @@ Server::Server() : m_host(1)
     m_yMapSize = m_gridSpacing * 6;
 
     InitializeEntityTypes(m_entityTypes);
+
+    m_map.Generate(m_xMapSize, m_yMapSize, m_mapSeed);
 }
 
 Server::~Server()
@@ -123,11 +122,16 @@ void Server::Update()
         i->second->Update(*this);
     }
 
+    for (ClientMap::iterator i = m_clientMap.begin(); i != m_clientMap.end(); ++i)
+    {
+        SendClientState(i->second->GetState());
+    }
+
 }
 
 void Server::OnConnect(int peerId)
 {
-    m_clientMap[peerId] = new Client(peerId, &m_entityTypes);
+    m_clientMap[peerId] = new Client(peerId, &m_map, &m_entityTypes);
 
     Protocol::InitializeGamePacket initializeGame;
     initializeGame.packetType = Protocol::PacketType_InitializeGame;
@@ -208,3 +212,18 @@ Server::Client* Server::FindClient(int peerId)
 
 }
 
+void Server::SendClientState(const ClientWorldState& state)
+{
+
+    size_t dataSize = state.GetSerializedSize();
+    size_t packetSize = dataSize + sizeof(Protocol::StatePacketHeader);
+    char* buffer = new char[packetSize];
+
+    Protocol::StatePacket* packet = reinterpret_cast<Protocol::StatePacket*>(buffer);
+    packet->header.packetType = Protocol::PacketType_State;
+    packet->header.dataSize = dataSize;
+    state.Serialize(packet->data, dataSize);
+    m_host.SendPacket(state.GetClientId(), 0, packet, packetSize);
+    delete[] buffer;
+
+}

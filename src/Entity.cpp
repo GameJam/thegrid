@@ -1,5 +1,11 @@
 #include "Entity.h"
 
+Entity::Entity(EntityTypeId typeId)
+{
+    m_id = -1;
+    m_typeId = typeId;
+}
+
 void Entity::SetId(int id)
 {
     m_id = id;
@@ -8,11 +14,6 @@ void Entity::SetId(int id)
 int Entity::GetId() const
 {
     return m_id;
-}
-
-void Entity::SetTypeId(EntityTypeId typeId)
-{
-    m_typeId = typeId;
 }
 
 EntityTypeId Entity::GetTypeId() const

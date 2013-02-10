@@ -48,7 +48,7 @@ private:
         ButtonId_None,
     };
 
-    enum State
+    enum MapState
     {
         State_Idle,
         State_Panning,
@@ -98,7 +98,7 @@ private:
     HSTREAM     m_music;
     HSAMPLE     m_testSound;
 
-    State       m_state;
+    MapState    m_mapState;
     ButtonId    m_activeButton;
     bool        m_activeButtonDown;
     int         m_stateX;
@@ -131,7 +131,7 @@ private:
     int         m_serverId;
 
     EntityTypeList      m_entityTypes;
-    ClientWorldState    m_testState;
+    ClientWorldState    m_state;
 
     int         m_hoverStop;
 

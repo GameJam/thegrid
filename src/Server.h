@@ -8,8 +8,12 @@
 #include "Entity.h"
 #include "EntityType.h"
 #include "Map.h"
+#include "AgentEntity.h"
+#include "Random.h"
 
 #include <hash_map>
+
+class Map;
 
 class Server : public Host::Handler
 {
@@ -19,7 +23,7 @@ public:
     class Client
     {
     public:
-        Client(int id, EntityTypeList* entityTypes);
+        Client(int id, Map* map, EntityTypeList* entityTypes);
 
         int GetId() const;
 
@@ -27,10 +31,17 @@ public:
 
         void OnOrder(const Protocol::OrderPacket& order);
 
-        void GetTest(int& x, int& y);
+        const ClientWorldState& GetState() const;
 
     private:
+        
+        typedef std::vector<AgentEntity*> AgentList;
+
         int                 m_id;
+        Map*                m_map;
+        Random              m_random;
+        AgentList           m_agents;
+
         ClientWorldState    m_state;
         TestEntity*         m_testEntity;
         stdext::hash_map<int, TestEntity*> m_spiedTestEntities;
@@ -54,6 +65,8 @@ public:
 private:
     
     Client* FindClient(int peerId);
+    void SendClientState(const ClientWorldState& state);
+
 
     typedef stdext::hash_map<int, Client*> ClientMap;
     Host            m_host;

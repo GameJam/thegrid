@@ -1,6 +1,7 @@
 #include "ClientGame.h"
 #include "Log.h"
 #include "Entity.h"
+#include "AgentEntity.h"
 
 #include <math.h>
 #include <assert.h>
@@ -22,7 +23,7 @@ static void DrawCircle(const Vec2& point, float radius)
 
 ClientGame::ClientGame(int xSize, int ySize) 
     : m_host(1),
-      m_testState(&m_entityTypes)
+      m_state(&m_entityTypes)
 {
 
     InitializeEntityTypes(m_entityTypes);
@@ -31,7 +32,7 @@ ClientGame::ClientGame(int xSize, int ySize)
     m_mapScale  = 1;
     m_xSize     = xSize;
     m_ySize     = ySize;
-    m_state     = State_Idle;
+    m_mapState     = State_Idle;
     m_blipX     = 0;
     m_blipY     = 0;
     m_serverId  = -1;
@@ -238,13 +239,26 @@ void ClientGame::Render() const
     glEnable(GL_TEXTURE_2D);    
     glColor(0xFFFFFFFF);
 
-    for (int i = 0; i < m_testState.GetNumEntities(); ++i)
+    // Entities
+    for (int i = 0; i < m_state.GetNumEntities(); ++i)
     {
-        const Entity* entity = m_testState.GetEntity(i);
+        const Entity* entity = m_state.GetEntity(i);
         
-        // HACK!
-        const TestEntity* testEntity = static_cast<const TestEntity*>(entity);
-        Render_DrawSprite(m_agentTexture, testEntity->x, testEntity->y);
+        switch (entity->GetTypeId())
+        {
+        case EntityTypeId_Agent:
+            {
+                const AgentEntity* agent = static_cast<const AgentEntity*>(entity);
+                int stop = agent->GetCurrentStop();
+                if (stop != -1)
+                {
+                    Vec2 position = m_map.GetStop(stop).point;
+                    Render_DrawSprite(m_agentTexture, static_cast<int>(position.x), static_cast<int>(position.y));
+                }
+            }
+            break;
+        }
+        
     }
 
     // Draw the UI.
@@ -295,7 +309,7 @@ void ClientGame::OnMouseDown(int x, int y, int button)
         {
             m_activeButton = buttonId;
             m_activeButtonDown = true;
-            m_state = State_Button;
+            m_mapState = State_Button;
         }
         else if (y < m_ySize - yStatusBarSize)
         {
@@ -328,9 +342,9 @@ void ClientGame::OnMouseDown(int x, int y, int button)
         if (y < m_ySize - yStatusBarSize)
         {
             // Pan with right mouse button.
-            if (m_state == State_Idle)
+            if (m_mapState == State_Idle)
             {
-                m_state = State_Panning;
+                m_mapState = State_Panning;
                 m_stateX = x;
                 m_stateY = y;
             }
@@ -344,10 +358,10 @@ void ClientGame::OnMouseUp(int x, int y, int button)
 
     if (button == 1)
     {
-        if (m_state == State_Button)
+        if (m_mapState == State_Button)
         {
             UpdateActiveButton(x, y);
-            m_state = State_Idle;
+            m_mapState = State_Idle;
 
             if (m_activeButtonDown)
             {
@@ -360,20 +374,20 @@ void ClientGame::OnMouseUp(int x, int y, int button)
 
     if (button == 3)
     {
-        if (m_state == State_Panning)
+        if (m_mapState == State_Panning)
         {
-            m_state = State_Idle;
+            m_mapState = State_Idle;
         }
     }
 }
 
 void ClientGame::OnMouseMove(int x, int y)
 {
-    if (m_state == State_Button)
+    if (m_mapState == State_Button)
     {
         UpdateActiveButton(x, y);
     }
-    if (m_state == State_Panning)
+    if (m_mapState == State_Panning)
     {
         int xDelta = m_stateX - x;
         int yDelta = m_stateY - y;
@@ -386,7 +400,7 @@ void ClientGame::OnMouseMove(int x, int y)
     {
         int xWorld, yWorld;
         ScreenToWorld(x, y, xWorld, yWorld);
-        m_hoverStop = m_map.GetStopForPoint( Vec2(xWorld, yWorld) );
+        m_hoverStop = m_map.GetStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
     }
 }
 
@@ -453,7 +467,7 @@ void ClientGame::OnPacket(int peerId, int channel, void* data, size_t size)
         case Protocol::PacketType_State:
             {
                 Protocol::StatePacket* packet = static_cast<Protocol::StatePacket*>(data);
-                m_testState.Deserialize(packet->data, packet->header.dataSize);
+                m_state.Deserialize(packet->data, packet->header.dataSize);
             }
             break;
 

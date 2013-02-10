@@ -18,6 +18,16 @@ ClientWorldState::ClientWorldState(EntityTypeList* entityTypeList)
     m_entityTypeList = entityTypeList;
 }
 
+void ClientWorldState::SetClientId(int clientId)
+{
+    m_clientId = clientId;
+}
+
+int ClientWorldState::GetClientId() const
+{
+    return m_clientId;
+}
+
 int ClientWorldState::GetNumEntities() const
 {
     return static_cast<int>(m_entities.size());
@@ -40,7 +50,7 @@ const Entity* ClientWorldState::GetEntity(int entityIndex) const
     return m_entities[entityIndex];
 }
 
-size_t ClientWorldState::GetSerializedSize()
+size_t ClientWorldState::GetSerializedSize() const
 {
     size_t size = sizeof(SerializeHeader);
 
@@ -53,7 +63,7 @@ size_t ClientWorldState::GetSerializedSize()
     return size;
 }
 
-void ClientWorldState::Serialize(void* buffer, size_t size)
+void ClientWorldState::Serialize(void* buffer, size_t size) const
 {
 
     SerializeHeader* header = static_cast<SerializeHeader*>(buffer);

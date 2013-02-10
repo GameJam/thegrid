@@ -1,11 +1,13 @@
 #ifndef GAME_ENTITY_TYPE_H
 #define GAME_ENTITY_TYPE_H
 
+#include <assert.h>
 #include <vector>
 
 enum EntityTypeId
 {
     EntityTypeId_Test,
+    EntityTypeId_Agent,
     EntityTypeId_Count
 };
 
@@ -57,7 +59,7 @@ template<class T>
 Entity* StructEntityType<T>::Create()
 {
     T* entity = new T();
-    entity->SetTypeId(m_typeId);
+    assert(entity->GetTypeId() == m_typeId);
     return entity;
 }
 

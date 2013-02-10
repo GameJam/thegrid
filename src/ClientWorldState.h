@@ -14,14 +14,17 @@ public:
 
     ClientWorldState(EntityTypeList* entityTypeList);
 
+    void SetClientId(int clientId);
+    int GetClientId() const;
+
     int GetNumEntities() const;
     Entity* GetEntity(int entityIndex);    
     const Entity* GetEntity(int entityIndex) const;
     
     void AddEntity(Entity* entity);
 
-    size_t GetSerializedSize();
-    void Serialize(void* buffer, size_t size);
+    size_t GetSerializedSize() const;
+    void Serialize(void* buffer, size_t size) const;
     void Deserialize(const void* buffer, size_t size);
 
 private:
