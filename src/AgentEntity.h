@@ -10,9 +10,11 @@ public:
 
     enum { TypeId = EntityTypeId_Agent };
 
-    enum State {
+    enum State
+    {
         State_Idle,
         State_Hacking,
+        State_Stakeout,
     };
 
     AgentEntity();

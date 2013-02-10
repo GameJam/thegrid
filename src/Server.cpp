@@ -171,6 +171,19 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
         }
         break;
 
+    case Protocol::Order_Stakeout:
+        {
+            if (agent->m_state == AgentEntity::State_Stakeout)
+            {
+                agent->m_state = AgentEntity::State_Idle;
+            }
+            else
+            {
+                agent->m_state = AgentEntity::State_Stakeout;
+            }   
+        }
+        break;
+
     }
     
 }

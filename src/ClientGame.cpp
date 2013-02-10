@@ -64,6 +64,11 @@ ClientGame::ClientGame(int xSize, int ySize)
     m_maxPlayersInGame = 0;
     m_gameOverTime = 0;
     m_isWinner = false;
+    
+    for (int i = 0; i < ButtonId_NumButtons; ++i)
+    {
+        m_button[i].toggled = false;
+    }
 
     UpdateActiveButtons();
 
@@ -379,7 +384,15 @@ void ClientGame::Render() const
         {
             int xButton, yButton, xButtonSize, yButtonSize;
             GetButtonRect((ButtonId)i, xButton, yButton, xButtonSize, yButtonSize);
-            glColor(0xFFFFFFFF);
+
+            if (m_button[i].toggled)
+            {
+                glColor(0xFFB0E8E1);
+            }
+            else
+            {
+                glColor(0xFFFFFFFF);
+            }
             int buttonOffset = 0;
             int shadowOffset = 10;
             Render_DrawSprite( m_buttonShadowTexture, xButton + shadowOffset, yButton + shadowOffset );
@@ -879,6 +892,10 @@ void ClientGame::UpdateActiveButtons()
             {
                 structure = GetStructureAtStop(agent->m_currentStop);
             }
+
+            m_button[ButtonId_Hack].toggled     = agent->m_state == AgentEntity::State_Hacking;
+            m_button[ButtonId_Stakeout].toggled = agent->m_state == AgentEntity::State_Stakeout;
+
         }
     }
 
@@ -990,4 +1007,18 @@ void ClientGame::EndGame(bool isWinner)
     m_gameState = GameState_GameOver;
     m_gameOverTime = m_time;
     m_isWinner = isWinner;
+}
+
+const PlayerEntity* ClientGame::GetLocalPlayer() const
+{
+    int index = 0;
+    const PlayerEntity* player;
+    while (m_state.GetNextEntityWithType(index, player))
+    {
+        if (player->m_clientId == m_clientId)
+        {
+            return player;
+        }
+    }
+    return NULL;
 }

@@ -14,6 +14,7 @@
 #include <bass.h>
 
 class AgentEntity;
+class PlayerEntity;
 
 class ClientGame : Host::Handler
 {
@@ -67,7 +68,8 @@ private:
 
     struct Button
     {
-        bool    enabled;  
+        bool    enabled;
+        bool    toggled;
     };
 
     void ScreenToWorld(int xScreen, int yScreen, int& xWorld, int& yWorld) const;
@@ -103,6 +105,7 @@ private:
     StructureType GetStructureAtStop(int stop) const;
 
     const Entity* GetEntity(int id) const;
+    const PlayerEntity* GetLocalPlayer() const;
     
     void EndGame(bool isWinner);
 
