@@ -32,7 +32,7 @@ private:
 
     void VisualizeNotification(const Protocol::NotificationPacket& packet);   
     void AddNotificationParticle(Texture* texture, int x, int y);
-    int GetRowUnderCursor(int x, int y);
+    int GetEntryUnderCursor(int x, int y);
 
     struct LogEntry
     {
@@ -58,7 +58,7 @@ private:
     Map*                    m_map;
     Particles*              m_mapParticles;
     std::vector<LogEntry>   m_entries;
-    int                     m_activeRow;
+    int                     m_activeEntry;
     int                     m_rowHeight;
     int                     m_firstEntry;
 };

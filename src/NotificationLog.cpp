@@ -43,7 +43,7 @@ static bool NotificationBounceFunc(Particle& particle, float deltaTime)
 NotificationLog::NotificationLog(Map* map, Particles* mapParticles, Font* font, int xSize, int ySize)
 {
 
-    m_activeRow = -1;
+    m_activeEntry = -1;
     m_map = map;
     m_mapParticles = mapParticles;
     m_font = font;
@@ -70,11 +70,21 @@ void NotificationLog::Draw()
     int rowY = m_windowY;
 
     Font_BeginDrawing(*m_font);
-    glColor(0xff000000);
+
     for (size_t i = m_firstEntry; i < m_entries.size(); ++i)
     {
         Protocol::Notification notification = m_entries[i].packet.notification;
         const char* text = kNotificationText[notification];
+
+        if (i == m_activeEntry)
+        {
+            glColor(0xffff0000);
+        }
+        else
+        {
+            glColor(0xff000000);
+        }
+
         Font_DrawText(text, m_windowX, rowY);
         
         if (notification == Protocol::Notification_LineUsed)
@@ -84,8 +94,7 @@ void NotificationLog::Draw()
             char lineBuffer[1024];
             sprintf(lineBuffer, "line %i", line + 1);
             glColor(m_map->GetLineColor(line));
-            Font_DrawText(lineBuffer, m_windowX + xOffset, rowY);
-            glColor(0xff000000);
+            Font_DrawText(lineBuffer, m_windowX + xOffset, rowY);            
         }
 
         rowY += m_rowHeight;
@@ -97,7 +106,14 @@ void NotificationLog::Draw()
 
 void NotificationLog::OnMouseDown(int x, int y, int button)
 {
-
+    if (button == 1)
+    {
+        int entry = GetEntryUnderCursor(x, y);
+        if (entry != -1)
+        {
+            VisualizeNotification(m_entries[entry].packet);
+        }
+    }
 }
 
 void NotificationLog::OnMouseUp(int x, int y, int button)
@@ -107,7 +123,7 @@ void NotificationLog::OnMouseUp(int x, int y, int button)
 
 void NotificationLog::OnMouseMove(int x, int y)
 {
-
+    m_activeEntry = GetEntryUnderCursor(x, y);
 }
 
 void NotificationLog::LoadResources()
@@ -182,7 +198,7 @@ void NotificationLog::VisualizeNotification(const Protocol::NotificationPacket& 
         break;
     case Protocol::Notification_CrimeDetected:
         {
-            const Stop& stop = m_map->GetStop(packet.stop);        
+            const Stop& stop = m_map->GetStop(packet.stop);
             AddNotificationParticle(&m_notificationCrime, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));\
             PlaySample(m_soundCrime);
         }
@@ -215,10 +231,13 @@ void NotificationLog::AddNotificationParticle(Texture* texture, int x, int y)
     p->updateFunction = NotificationBounceFunc;
 }
 
-int NotificationLog::GetRowUnderCursor(int x, int y)
+int NotificationLog::GetEntryUnderCursor(int x, int y)
 {
+
+    int visibleEntries = Min(kNumEntries, static_cast<int>(m_entries.size()));
+
     if (x >= m_windowX && x < m_windowX + kWindowWidth && 
-        y >= m_windowY && y <= m_windowY + kNumEntries * m_rowHeight)
+        y >= m_windowY && y <= m_windowY + visibleEntries * m_rowHeight)
     {
         return Clamp(m_firstEntry + (y - m_windowY) / m_rowHeight, 0, static_cast<int>(m_entries.size()) - 1);
     }
