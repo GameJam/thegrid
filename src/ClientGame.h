@@ -145,6 +145,9 @@ private:
     Texture             m_buttonShadowTexture;
     Texture             m_playerPortraitTexture;
     Texture             m_playerEliminatedTexture;
+    Texture             m_playerBankHackedTexture;
+    Texture             m_playerCellHackedTexture;
+    Texture             m_playerPoliceHackedTexture;
 
     Button              m_button[ButtonId_NumButtons];
 

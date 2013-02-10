@@ -110,6 +110,9 @@ void ClientGame::LoadResources()
             { &m_buttonShadowTexture,                   "assets/button_shadow.png"      },
             { &m_playerPortraitTexture,                 "assets/player_portrait.png"    },
             { &m_playerEliminatedTexture,               "assets/player_eliminated.png"  },
+            { &m_playerBankHackedTexture,               "assets/player_bank_hacked.png"  },
+            { &m_playerCellHackedTexture,               "assets/player_cell_hacked.png"  },
+            { &m_playerPoliceHackedTexture,             "assets/player_police_hacked.png"  },
         };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -351,8 +354,17 @@ void ClientGame::Render() const
     gluOrtho2D(0, m_xSize, m_ySize, 0);
 
     glDisable(GL_TEXTURE_2D);
-    glColor(0x80000000);
+    glColor(0xB0DBEDF7);
     glBegin(GL_QUADS);
+    glVertex2i(0, m_ySize - yStatusBarSize);
+    glVertex2i(m_xSize, m_ySize - yStatusBarSize);
+    glVertex2i(m_xSize, m_ySize);
+    glVertex2i(0, m_ySize);
+    glEnd();
+
+    glColor(0xFF86DDEE);
+    glLineWidth(1);
+    glBegin(GL_LINE_LOOP);
     glVertex2i(0, m_ySize - yStatusBarSize);
     glVertex2i(m_xSize, m_ySize - yStatusBarSize);
     glVertex2i(m_xSize, m_ySize);
@@ -386,8 +398,22 @@ void ClientGame::Render() const
     // Show the players.
 
     glDisable(GL_TEXTURE_2D);
-    glColor(0x80000000);
+    glColor(0xB0DBEDF7);
+    glLineWidth(1);
     glBegin(GL_QUADS);
+    for (int i = 0; i < numPlayers; ++i)
+    {
+        int x = m_xSize - 300;
+        int y = 10 + 130 * i;
+        glVertex2i( x, y );   
+        glVertex2i( m_xSize, y );   
+        glVertex2i( m_xSize, y + 115 );   
+        glVertex2i( x, y + 115 );   
+    }
+    glEnd();
+
+    glColor(0xFF86DDEE);
+    glBegin(GL_LINE_LOOP);
     for (int i = 0; i < numPlayers; ++i)
     {
         int x = m_xSize - 300;
@@ -403,9 +429,24 @@ void ClientGame::Render() const
     glColor(0xFFFFFFFF);
     for (int i = 0; i < numPlayers; ++i)
     {
-        Render_DrawSprite(m_playerPortraitTexture,
-            m_xSize - 290,
-            20 + 130 * i);
+        Render_DrawSprite(m_playerPortraitTexture, m_xSize - 290, 20 + 130 * i);
+
+        int offset = 0;
+        if (player[i]->m_hackingBank)
+        {
+            Render_DrawSprite(m_playerBankHackedTexture, m_xSize - m_playerPortraitTexture.xSize - 60 + offset, 20 + 130 * i + 90 - m_playerBankHackedTexture.ySize);
+            offset += m_playerBankHackedTexture.xSize;
+        }
+        if (player[i]->m_hackingTower)
+        {
+            Render_DrawSprite(m_playerCellHackedTexture, m_xSize - m_playerPortraitTexture.xSize - 60 + offset, 20 + 130 * i + 90 - m_playerCellHackedTexture.ySize);
+            offset += m_playerCellHackedTexture.xSize;
+        }
+        if (player[i]->m_hackingPolice)
+        {
+            Render_DrawSprite(m_playerPoliceHackedTexture, m_xSize - m_playerPortraitTexture.xSize - 60 + offset, 20 + 130 * i + 90 - m_playerPoliceHackedTexture.ySize);
+            offset += m_playerPoliceHackedTexture.xSize;
+        }
     }
 
     Font_BeginDrawing(m_font);
