@@ -1,53 +1,123 @@
 #include "ClientWorldState.h"
 
-ClientWorldState::ClientWorldState()
+#include "Entity.h"
+
+#include <assert.h>
+
+struct SerializeHeader
 {
-    m_id = -1;
+    size_t  numEntities;
+    int     clientId;
+};
+
+
+ClientWorldState::ClientWorldState(EntityTypeList* entityTypeList)
+{
+    m_clientId = -1;
+    m_nextEntityId = 1;  
+    m_entityTypeList = entityTypeList;
+}
+
+int ClientWorldState::GetNumEntities() const
+{
+    return static_cast<int>(m_entities.size());
+}
+
+Entity* ClientWorldState::GetEntity(int entityIndex)
+{
+    return m_entities[entityIndex];
+}
+
+void ClientWorldState::AddEntity(Entity* entity)
+{
+    entity->SetId(m_nextEntityId);
+    ++m_nextEntityId;
+    m_entities.push_back(entity);
+}
+
+const Entity* ClientWorldState::GetEntity(int entityIndex) const
+{
+    return m_entities[entityIndex];
 }
 
 size_t ClientWorldState::GetSerializedSize()
 {
-    return sizeof(Test) * m_test.size() + 2*sizeof(int);
+    size_t size = sizeof(SerializeHeader);
+
+    for (size_t i = 0; i < m_entities.size(); ++i)
+    {
+        EntityType* entityType = (*m_entityTypeList)[m_entities[i]->GetTypeId()];
+        size += entityType->GetSerializedSize(m_entities[i]) + sizeof(EntityTypeId);
+    }
+
+    return size;
 }
 
-void ClientWorldState::Serialize(void* buffer)
+void ClientWorldState::Serialize(void* buffer, size_t size)
 {
-    int* intBuffer = static_cast<int*>(buffer);
 
-    *intBuffer = m_id;
-    ++intBuffer;
+    SerializeHeader* header = static_cast<SerializeHeader*>(buffer);
+    header->numEntities = m_entities.size();
+    header->clientId = m_clientId;
 
-    *intBuffer = static_cast<int>(m_test.size());
-    ++intBuffer;
-
-    for (size_t i = 0; i < m_test.size(); ++i)
+    char* entityBuffer = reinterpret_cast<char*>(header + 1);
+    for (size_t i = 0; i < m_entities.size(); ++i)
     {
-        *intBuffer = m_test[i].x;
-        ++intBuffer;
+        EntityTypeId typeId = m_entities[i]->GetTypeId();
 
-        *intBuffer = m_test[i].y;
-        ++intBuffer;
+        *reinterpret_cast<EntityTypeId*>(entityBuffer) = typeId;
+        entityBuffer += sizeof(EntityTypeId);
+
+        EntityType* entityType = (*m_entityTypeList)[typeId];
+        entityBuffer += entityType->Serialize(m_entities[i], entityBuffer);
     }
+
+    assert(entityBuffer == static_cast<char*>(buffer) + size);
+
 }
 
-void ClientWorldState::Deserialize(const void* buffer)
+void ClientWorldState::Deserialize(const void* buffer, size_t size)
 {
-    const int* intBuffer = static_cast<const int*>(buffer);
 
-    m_id = *intBuffer;
-    ++intBuffer;
+    const SerializeHeader* header = static_cast<const SerializeHeader*>(buffer);
+    m_clientId = header->clientId;
 
-    size_t size = *intBuffer;
-    ++intBuffer;
-
-    m_test.resize(size);
-
-    for (size_t i = 0; i < size; ++i)
+    if (m_entities.size() < header->numEntities)
     {
-        m_test[i].x = *intBuffer;
-        ++intBuffer;
+        m_entities.resize(header->numEntities, NULL);
+    }    
 
-        m_test[i].y = *intBuffer;
-        ++intBuffer;
+    const char* entityBuffer = reinterpret_cast<const char*>(header + 1);
+    for (size_t i = 0; i < header->numEntities; ++i)
+    {
+        EntityTypeId typeId = *reinterpret_cast<const EntityTypeId*>(entityBuffer);
+        entityBuffer += sizeof(EntityTypeId);
+
+        EntityType* entityType = (*m_entityTypeList)[typeId];
+
+        if (m_entities[i] == NULL)
+        {
+            m_entities[i] = entityType->Create();
+        }
+        else if (m_entities[i]->GetTypeId() != typeId)
+        {
+            delete m_entities[i];
+            m_entities[i] = entityType->Create();
+        }
+
+        entityBuffer += entityType->Deserialize(m_entities[i], entityBuffer);
     }
+
+    if (m_entities.size() > header->numEntities)
+    {
+        for (size_t i = header->numEntities; i < m_entities.size(); ++i)
+        {
+            delete m_entities[i];
+        }
+
+        m_entities.resize(header->numEntities);
+    }
+
+    assert(entityBuffer == static_cast<const char*>(buffer) + size);
+
 }

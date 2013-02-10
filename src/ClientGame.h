@@ -8,6 +8,7 @@
 #include "Host.h"
 #include "Protocol.h"
 #include "ClientWorldState.h"
+#include "EntityType.h"
 
 #include <bass.h>
 
@@ -115,6 +116,8 @@ private:
 
     Host        m_host;
     int         m_serverId;
+
+    EntityTypeList      m_entityTypes;
     ClientWorldState    m_testState;
 
     int         m_hoverStop;
