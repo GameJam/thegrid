@@ -48,7 +48,7 @@ ClientGame::ClientGame(int xSize, int ySize)
     InitializeEntityTypes(m_entityTypes);
 
     m_time      = 0;
-    m_hasMap    = false;
+    m_gameState = GameState_WaitingForServer;
     m_mapScale  = 1;
     m_xSize     = xSize;
     m_ySize     = ySize;
@@ -125,9 +125,8 @@ void ClientGame::LoadResources()
 void ClientGame::Render() const
 {
 
-    if (!m_hasMap)
+    if (m_gameState == GameState_WaitingForServer)
     {
-        // TODO: proper state management!
         return;
     }
 
@@ -690,7 +689,7 @@ void ClientGame::OnInitializeGame(Protocol::InitializeGamePacket& packet)
     m_map.Generate(m_xMapSize, m_yMapSize, packet.mapSeed);
     CenterMap(m_xMapSize / 2, m_yMapSize / 2);
 
-    m_hasMap = true;
+    m_gameState = GameState_Playing;
 }
 
 void ClientGame::GetButtonRect(ButtonId buttonId, int& x, int& y, int& xSize, int& ySize) const

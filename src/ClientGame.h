@@ -57,6 +57,13 @@ private:
         State_Button,
     };
 
+    enum GameState
+    {
+        GameState_WaitingForServer,
+        GameState_Playing,
+        GameState_GameOver
+    };
+
     struct Button
     {
         bool    enabled;  
@@ -139,7 +146,7 @@ private:
     int         m_blipX;
     int         m_blipY;
 
-    bool        m_hasMap;
+    GameState   m_gameState;
     Map         m_map;
     int         m_xMapSize;
     int         m_yMapSize;
@@ -148,7 +155,7 @@ private:
     Host        m_host;
     int         m_serverId;
 
-    EntityTypeList      m_entityTypes;
+    EntityTypeList m_entityTypes;
     EntityState    m_state;
 
     int         m_hoverStop;
