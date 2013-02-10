@@ -998,6 +998,8 @@ void ClientGame::UpdateActiveButtons()
 
     StructureType structure = StructureType_None;
 
+    const AgentEntity* agent = NULL;
+
     if (selection)
     {
         const Entity* entity = GetEntity(m_selectedAgent);
@@ -1008,7 +1010,7 @@ void ClientGame::UpdateActiveButtons()
         else
         {
             assert(entity->GetTypeId() == EntityTypeId_Agent);
-            const AgentEntity* agent = static_cast<const AgentEntity*>(entity);
+            agent = static_cast<const AgentEntity*>(entity);
             if (agent->m_currentStop != -1)
             {
                 structure = GetStructureAtStop(agent->m_currentStop);
@@ -1029,13 +1031,17 @@ void ClientGame::UpdateActiveButtons()
     if (structure == StructureType_House)
     {
         buttonEnabled[ButtonId_Hack] = false;
+        if (agent != NULL && !agent->m_hasIntel)
+        {
+            buttonEnabled[ButtonId_Intel] = false;
+        }
     }
     else
     {
         buttonEnabled[ButtonId_Intel] = false;
     }
 
-    if (structure != StructureType_None)
+    if (structure != StructureType_None && structure != StructureType_House)
     {
         buttonEnabled[ButtonId_Infiltrate] = false;
     }

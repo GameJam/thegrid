@@ -103,14 +103,16 @@ void Server::Client::Update()
 
     }
 
+    UpdateCounts();
+
     // Check for end game
-    if (m_agents.size() == 0)
+    if (m_agents.size() == 0 || m_player->m_numSafeHouses == 0)
     {
         m_player->m_eliminated = true;
     }
 
     UpdateHackingStatus();
-    UpdateCounts();
+
 
 }
 
