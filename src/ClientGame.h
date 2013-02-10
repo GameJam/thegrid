@@ -92,6 +92,8 @@ private:
 
     Vec2 GetAgentPosition(const AgentEntity* agent) const;
 
+    StructureType GetStructureAtStop(int stop) const;
+
 private:
   
     float       m_time;

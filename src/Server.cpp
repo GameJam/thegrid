@@ -126,6 +126,7 @@ Server::Server()
 
     m_map.Generate(m_xMapSize, m_yMapSize, m_mapSeed);
 
+    /*
     for (int i = 0; i < m_map.GetNumStops(); ++i)
     {
         const Stop& stop = m_map.GetStop(i);
@@ -137,6 +138,7 @@ Server::Server()
             m_globalState.AddEntity(building);
         }
     }
+    */
 
 }
 

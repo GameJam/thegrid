@@ -189,6 +189,34 @@ void ClientGame::Render() const
     glVertex2i(m_xMapSize, m_yMapSize);
     glEnd();
 
+    // Buildings.
+    glEnable(GL_TEXTURE_2D);
+    glColor(0xFFFFFFFF);
+    for (int i = 0; i < m_map.GetNumStops(); ++i)
+    {
+        const Stop& stop = m_map.GetStop(i);
+        Vec2 position = stop.point;
+                
+        const Texture* texture = NULL;
+        switch (stop.structureType)
+        {
+        case StructureType_Bank:
+            texture = &m_buildingBankTexture;
+            break;
+        case StructureType_Tower:
+            texture = &m_buildingTowerTexture;
+            break;
+        case StructureType_Police:
+            texture = &m_buildingPoliceTexture;
+            break;
+        }
+        if (texture != NULL)
+        {
+            Render_DrawSprite(*texture, static_cast<int>(position.x) - texture->xSize / 2, static_cast<int>(position.y) - texture->ySize / 2);
+        }
+    }
+    glDisable(GL_TEXTURE_2D);
+
     // Rails.
     glLineWidth(8.0f / m_mapScale);
     glBegin(GL_LINES);
@@ -271,31 +299,6 @@ void ClientGame::Render() const
                 else
                 {
                     Render_DrawSprite(m_agentTexture, static_cast<int>(position.x) - m_agentTexture.xSize / 2, static_cast<int>(position.y) - m_agentTexture.ySize / 2);
-                }
-            }
-            break;
-        case EntityTypeId_Building:
-            {
-                const BuildingEntity* building = static_cast<const BuildingEntity*>(entity);
-                Vec2 position = m_map.GetStop(building->m_stop).point;
-                
-                const Texture* texture = NULL;
-
-                switch (building->m_type)
-                {
-                case StructureType_Bank:
-                    texture = &m_buildingBankTexture;
-                    break;
-                case StructureType_Tower:
-                    texture = &m_buildingTowerTexture;
-                    break;
-                case StructureType_Police:
-                    texture = &m_buildingPoliceTexture;
-                    break;
-                }
-                if (texture != NULL)
-                {
-                    Render_DrawSprite(*texture, static_cast<int>(position.x) - texture->xSize / 2, static_cast<int>(position.y) - texture->ySize / 2);
                 }
             }
             break;
@@ -653,9 +656,16 @@ void ClientGame::UpdateActiveButtons()
     for (int i = 0; i < ButtonId_NumButtons; ++i)
     {
         m_button[i].enabled = selection;
+        // If the active button is going away, remove its current state.
+        if (m_activeButton == i)
+        {
+            if (!m_button[i].enabled)
+            {
+                m_activeButton = ButtonId_None;
+                m_activeButtonDown = false;
+            }
+        }
     }
-    m_activeButton = ButtonId_None;
-    m_activeButtonDown = false;
 }
 
 ClientGame::ButtonId ClientGame::GetButtonAtPoint(int x, int y) const
@@ -686,4 +696,10 @@ void ClientGame::PlaySample(HSAMPLE sample)
 {
     HCHANNEL channel = BASS_SampleGetChannel(sample, false);
     BASS_ChannelPlay(channel, true);
+}
+
+StructureType ClientGame::GetStructureAtStop(int stop) const
+{
+    // TODO: go through entities?
+    return m_map.GetStop(stop).structureType;   
 }

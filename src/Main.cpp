@@ -114,6 +114,9 @@ const char* GetArgument(const Arguments& arguments, const char* key)
 int main(int argc, char* argv[])
 {
 
+    _putenv("SDL_VIDEO_WINDOW_POS");
+    _putenv("SDL_VIDEO_CENTERED=1");
+
     const int xSize = 1280;
     const int ySize = 800;
 
