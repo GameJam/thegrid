@@ -56,6 +56,7 @@ void Server::Client::Update(Server& server)
             spiedEntity = new TestEntity();
             spiedEntity->clientId = client->GetId();
             m_state.AddEntity(spiedEntity);
+            m_spiedTestEntities[client->GetId()] = spiedEntity;
         }
         else
         {
