@@ -115,6 +115,8 @@ void Server::Client::Update()
 
 void Server::Client::CheckForStakeout(AgentEntity* agent)
 {
+    bool spotted = false;
+
     // Check if the location of the agent is being staked out.
     int stop = agent->m_currentStop;
     int index = 0;
@@ -126,8 +128,17 @@ void Server::Client::CheckForStakeout(AgentEntity* agent)
         {
             int id = testAgent->GetOwnerId();
             m_server->SendNotification(id, Protocol::Notification_AgentSpotted, agent->GetId(), agent->m_currentStop, -1);
+            spotted = true;
+
         }
     }
+
+    // If we were spotted and we're hacking the police, we'll see it as a crime.
+    if (spotted && m_player->m_hackingPolice)
+    {
+        m_server->SendNotification(m_id, Protocol::Notification_CrimeDetected, agent->GetId(), agent->m_currentStop, -1);
+    }
+
 }
 
 void Server::Client::OnOrder(const Protocol::OrderPacket& order)

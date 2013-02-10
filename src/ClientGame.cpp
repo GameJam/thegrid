@@ -160,7 +160,8 @@ void ClientGame::LoadResources()
             { &m_uiTexture,                             "assets/ui.png"                             },
             { &m_notificationAgentLost,                 "assets/notification_agent_lost.png"        },
             { &m_notificationAgentCaptured,             "assets/notification_agent_captured.png"    },
-            { &m_notificationAgentSpotted,              "assets/notification_agent_spotted.png"    },
+            { &m_notificationAgentSpotted,              "assets/notification_agent_spotted.png"     },
+            { &m_notificationCrime,                     "assets/notification_crime.png"             },
         };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -995,7 +996,12 @@ void ClientGame::OnNotification(Protocol::NotificationPacket& packet)
             AddNotificationParticle(&m_notificationAgentSpotted, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
         }
         break;
-
+    case Protocol::Notification_CrimeDetected:
+        {
+            const Stop& stop = m_map.GetStop(packet.stop);        
+            AddNotificationParticle(&m_notificationCrime, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+        }
+        break;
     case Protocol::Notification_AgentLost:
         {
             const Stop& stop = m_map.GetStop(packet.stop);        
@@ -1199,9 +1205,9 @@ void ClientGame::RenderMainMenu()
 
     glTexCoord2f(0, 0);
     glVertex2i(0, titleOffset);
-    glTexCoord2f(m_xSize / m_titleBackgroundTexture.xSize, 0);
+    glTexCoord2i(m_xSize / m_titleBackgroundTexture.xSize, 0);
     glVertex2i(m_xSize, titleOffset);
-    glTexCoord2f(m_xSize / m_titleBackgroundTexture.xSize, 1);
+    glTexCoord2i(m_xSize / m_titleBackgroundTexture.xSize, 1);
     glVertex2i(m_xSize, titleOffset + m_titleBackgroundTexture.ySize);
     glTexCoord2f(0, 1);
     glVertex2i(0, titleOffset + m_titleBackgroundTexture.ySize);

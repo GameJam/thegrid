@@ -174,6 +174,7 @@ private:
     Texture             m_notificationAgentLost;
     Texture             m_notificationAgentCaptured;
     Texture             m_notificationAgentSpotted;
+    Texture             m_notificationCrime;
 
     Button              m_button[ButtonId_NumButtons];
 
