@@ -116,10 +116,11 @@ void Map::Generate(int xSize, int ySize, int seed)
             y = r - (xNumTiles * 2 + yNumTiles);
         }
 
+        if (x >= xNumTiles) x = xNumTiles - 1;
+        if (y >= yNumTiles) y = yNumTiles - 1;
+
         assert(x >= 0);
-        assert(x < xNumTiles);
         assert(y >= 0);
-        assert(y < yNumTiles);
 
         Vec2 point;
         point.x = (float)(x * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
@@ -150,8 +151,8 @@ void Map::Generate(int xSize, int ySize, int seed)
         float x = cosf((i * 2 * 3.14159265f) / 15) * 2.0f;
         float y = sinf((i * 2 * 3.14159265f) / 15) * 1.5f;
 
-        x += (xNumTiles - xNumSteps) / 2;
-        y += (yNumTiles - yNumSteps) / 2;
+        x += xNumTiles / 2;
+        y += yNumTiles / 2;
 
         Vec2 point((x + 0.5f) * terminalSpacing, (y + 0.5f) * terminalSpacing);
 
