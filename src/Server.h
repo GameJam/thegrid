@@ -57,7 +57,7 @@ public:
     virtual void OnDisconnect(int peerId);
     virtual void OnPacket(int peerId, int channel, void* data, size_t size);
 
-    Host& GetHost();
+    float GetTime() const;
     void GetClients(ClientList& clients);
 
 private:

@@ -28,6 +28,7 @@ ClientGame::ClientGame(int xSize, int ySize)
 
     InitializeEntityTypes(m_entityTypes);
 
+    m_time      = 0;
     m_hasMap    = false;
     m_mapScale  = 1;
     m_xSize     = xSize;
@@ -484,8 +485,9 @@ void ClientGame::Connect(const char* hostName, int port)
     m_host.Connect(hostName, port);
 }
 
-void ClientGame::Update()
+void ClientGame::Update(float deltaTime)
 {
+    m_time += deltaTime;
     m_host.Service(this);
 }
 

@@ -17,7 +17,7 @@ Server::Client::Client(int id, Map* map, EntityTypeList* entityTypes) : m_state(
     {
         AgentEntity* agent = new AgentEntity();
         int stop = static_cast<int>(m_random.Generate(0, m_map->GetNumStops() - 1));
-        agent->SetCurrentStop(stop);
+        agent->m_currentStop = stop;
 
         m_agents.push_back(agent);
         m_state.AddEntity(agent);
@@ -33,10 +33,37 @@ int Server::Client::GetId() const
 void Server::Client::Update(Server& server)
 {
 
+    m_state.SetTime(server.GetTime());
+
     // 1. Execute orders
-    
+
+    // FAKE ORDERS
+    for (size_t i = 0; i < m_agents.size(); ++i)
+    {
+        AgentEntity* agent = m_agents[i];
+
+        if (agent->m_targetStop == -1)
+        {
+            const std::vector<int>& neighbours = m_map->GetStop(agent->m_currentStop).children;
+            agent->m_targetStop = neighbours[m_random.Generate(0, static_cast<int>(neighbours.size() - 1))];
+            agent->m_arrivalTime = m_state.GetTime() + 2;
+        }
+    }
+
     
     // 2. Update state
+    for (size_t i = 0; i < m_agents.size(); ++i)
+    {
+        AgentEntity* agent = m_agents[i];
+
+        if (agent->m_targetStop != -1 && agent->m_arrivalTime < m_state.GetTime())
+        {
+            agent->m_currentStop = agent->m_targetStop;
+            agent->m_targetStop = -1;
+        }
+
+    }
+
     /*
     ClientList clients;
     server.GetClients(clients);
@@ -185,9 +212,9 @@ void Server::OnPacket(int peerId, int channel, void* data, size_t size)
     
 }
 
-Host& Server::GetHost()
+float Server::GetTime() const
 {
-    return m_host;
+    return m_time;
 }
 
 void Server::GetClients(ClientList& clients)

@@ -31,7 +31,7 @@ public:
 
     void Connect(const char* hostName, int port);
 
-    void Update();
+    void Update(float deltaTime);
 
     virtual void OnConnect(int peerId);
     virtual void OnDisconnect(int peerId);
@@ -94,6 +94,7 @@ private:
 
 private:
   
+    float       m_time;
     int         m_xSize;
     int         m_ySize;
 

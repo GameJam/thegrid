@@ -17,6 +17,9 @@ public:
     void SetClientId(int clientId);
     int GetClientId() const;
 
+    void SetTime(float time);
+    float GetTime() const;
+
     int GetNumEntities() const;
     Entity* GetEntity(int entityIndex);    
     const Entity* GetEntity(int entityIndex) const;
@@ -32,6 +35,7 @@ private:
     typedef std::vector<Entity*> EntityList;
 
     int             m_clientId;
+    float           m_time;
     EntityList      m_entities;
     EntityTypeList* m_entityTypeList;
     int             m_nextEntityId;

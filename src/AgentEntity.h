@@ -9,12 +9,11 @@ public:
 
     AgentEntity();
     
-    int GetCurrentStop() const;
-    void SetCurrentStop(int stop);
-    
-private:
-    
     int m_currentStop;
+    
+    // Movement hack
+    int m_targetStop;
+    float m_arrivalTime;
 
 };
 

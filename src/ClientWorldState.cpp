@@ -8,6 +8,7 @@ struct SerializeHeader
 {
     size_t  numEntities;
     int     clientId;
+    float   time;
 };
 
 
@@ -26,6 +27,16 @@ void ClientWorldState::SetClientId(int clientId)
 int ClientWorldState::GetClientId() const
 {
     return m_clientId;
+}
+
+void ClientWorldState::SetTime(float time)
+{
+    m_time = time;
+}
+
+float ClientWorldState::GetTime() const
+{
+    return m_time;
 }
 
 int ClientWorldState::GetNumEntities() const
@@ -69,6 +80,7 @@ void ClientWorldState::Serialize(void* buffer, size_t size) const
     SerializeHeader* header = static_cast<SerializeHeader*>(buffer);
     header->numEntities = m_entities.size();
     header->clientId = m_clientId;
+    header->time = m_time;
 
     char* entityBuffer = reinterpret_cast<char*>(header + 1);
     for (size_t i = 0; i < m_entities.size(); ++i)
@@ -91,6 +103,7 @@ void ClientWorldState::Deserialize(const void* buffer, size_t size)
 
     const SerializeHeader* header = static_cast<const SerializeHeader*>(buffer);
     m_clientId = header->clientId;
+    m_time = header->time;
 
     if (m_entities.size() < header->numEntities)
     {

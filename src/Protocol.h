@@ -22,15 +22,15 @@ struct InitializeGamePacket
 
 struct OrderPacket
 {
-    char packetType;
-    int agentId;
-    int x, y;
+    char        packetType;
+    int         agentId;
+    int         x, y;
 };
 
 struct StatePacketHeader
 {
-    char packetType;
-    size_t dataSize;
+    char        packetType;
+    size_t      dataSize;
 };
 
 struct StatePacket

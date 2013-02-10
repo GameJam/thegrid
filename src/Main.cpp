@@ -183,7 +183,7 @@ int main(int argc, char* argv[])
         server = new Server();
     }
 
-    ClientGame* game = new ClientGame(xSize, ySize);    
+    ClientGame* game = new ClientGame(xSize, ySize);
 
     game->LoadResources();
     game->Connect(hostName, 12345);
@@ -193,12 +193,12 @@ int main(int argc, char* argv[])
     while (ProcessEvents(*game))
     {
         Uint32 time = SDL_GetTicks();
-        Uint32 deltaTime = time = lastTime;
+        Uint32 deltaTime = time - lastTime;
         lastTime = time;
 
         float deltaTimeSeconds = static_cast<float>(deltaTime) / 1000.0f;
 
-        game->Update();
+        game->Update(deltaTimeSeconds);
         game->Render();
         SDL_GL_SwapBuffers();
         
