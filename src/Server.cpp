@@ -125,12 +125,12 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
             Entity* entity = m_state->GetEntity(i);
             if (entity->GetTypeId() == EntityTypeId_Agent && entity->GetOwnerId() != m_id)
             {
-                AgentEntity* agent = static_cast<AgentEntity*>(entity);
-                if (agent->m_currentStop == agent->m_currentStop)
+                AgentEntity* capturedAgent = static_cast<AgentEntity*>(entity);
+                if (capturedAgent->m_currentStop == agent->m_currentStop)
                 {
                     // Capture this agent!
                     entity->SetOwnerId(m_id);
-                    m_agents.push_back(agent);
+                    m_agents.push_back(capturedAgent);
                     break;
                 }
             }

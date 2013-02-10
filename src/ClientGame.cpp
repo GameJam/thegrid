@@ -12,10 +12,10 @@ const int yStatusBarSize    = 140;
 
 const Protocol::Order ClientGame::kButtonToOrder[ButtonId_NumButtons] = 
 {
-    Protocol::Order_Infiltrate,
-    Protocol::Order_Hack,
     Protocol::Order_Capture,
     Protocol::Order_Stakeout,
+    Protocol::Order_Infiltrate,
+    Protocol::Order_Hack,
     Protocol::Order_Intel
 };
 
