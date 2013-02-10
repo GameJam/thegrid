@@ -19,6 +19,8 @@ public:
     bool    m_hackingBank;
     bool    m_hackingTower;
     bool    m_hackingPolice;
+    int     m_numSafeHouses;
+    int     m_numAgents;
 
 };
 

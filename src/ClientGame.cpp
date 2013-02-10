@@ -452,6 +452,8 @@ void ClientGame::Render()
 
     // Show the players.
 
+    const int playerBoxHeight = 150;
+
     glDisable(GL_TEXTURE_2D);
     glColor(0xB0DBEDF7);
     glLineWidth(1);
@@ -459,11 +461,11 @@ void ClientGame::Render()
     for (int i = 0; i < numPlayers; ++i)
     {
         int x = m_xSize - 300;
-        int y = 10 + 130 * i;
+        int y = 10 + (playerBoxHeight + 15) * i;
         glVertex2i( x, y );   
         glVertex2i( m_xSize, y );   
-        glVertex2i( m_xSize, y + 115 );   
-        glVertex2i( x, y + 115 );   
+        glVertex2i( m_xSize, y + playerBoxHeight );   
+        glVertex2i( x, y + playerBoxHeight );   
     }
     glEnd();
 
@@ -472,11 +474,11 @@ void ClientGame::Render()
     for (int i = 0; i < numPlayers; ++i)
     {
         int x = m_xSize - 300;
-        int y = 10 + 130 * i;
+        int y = 10 + (playerBoxHeight + 15) * i;
         glVertex2i( x, y );   
         glVertex2i( m_xSize, y );   
-        glVertex2i( m_xSize, y + 115 );   
-        glVertex2i( x, y + 115 );   
+        glVertex2i( m_xSize, y + playerBoxHeight );   
+        glVertex2i( x, y + playerBoxHeight );   
     }
     glEnd();
 
@@ -484,22 +486,22 @@ void ClientGame::Render()
     glColor(0xFFFFFFFF);
     for (int i = 0; i < numPlayers; ++i)
     {
-        Render_DrawSprite(m_playerPortraitTexture, m_xSize - 290, 20 + 130 * i);
+        Render_DrawSprite(m_playerPortraitTexture, m_xSize - 290, 20 + (playerBoxHeight + 15) * i);
 
         int offset = 0;
         if (player[i]->m_hackingBank)
         {
-            Render_DrawSprite(m_playerBankHackedTexture, m_xSize - m_playerPortraitTexture.xSize - 60 + offset, 20 + 130 * i + 90 - m_playerBankHackedTexture.ySize);
+            Render_DrawSprite(m_playerBankHackedTexture, m_xSize - m_playerPortraitTexture.xSize - 60 + offset, 20 + (playerBoxHeight + 15) * i + 90 - m_playerBankHackedTexture.ySize);
             offset += m_playerBankHackedTexture.xSize;
         }
         if (player[i]->m_hackingTower)
         {
-            Render_DrawSprite(m_playerCellHackedTexture, m_xSize - m_playerPortraitTexture.xSize - 60 + offset, 20 + 130 * i + 90 - m_playerCellHackedTexture.ySize);
+            Render_DrawSprite(m_playerCellHackedTexture, m_xSize - m_playerPortraitTexture.xSize - 60 + offset, 20 + (playerBoxHeight + 15) * i + 90 - m_playerCellHackedTexture.ySize);
             offset += m_playerCellHackedTexture.xSize;
         }
         if (player[i]->m_hackingPolice)
         {
-            Render_DrawSprite(m_playerPoliceHackedTexture, m_xSize - m_playerPortraitTexture.xSize - 60 + offset, 20 + 130 * i + 90 - m_playerPoliceHackedTexture.ySize);
+            Render_DrawSprite(m_playerPoliceHackedTexture, m_xSize - m_playerPortraitTexture.xSize - 60 + offset, 20 + (playerBoxHeight + 15) * i + 90 - m_playerPoliceHackedTexture.ySize);
             offset += m_playerPoliceHackedTexture.xSize;
         }
     }
@@ -511,7 +513,14 @@ void ClientGame::Render()
     {
         Font_DrawText(player[i]->m_name,
             m_xSize - m_playerPortraitTexture.xSize - 60,
-            20 + 130 * i);
+            20 + (playerBoxHeight + 15) * i);
+
+        char buffer[256];
+        sprintf(buffer, "%d Agents %d Houses", player[i]->m_numAgents, player[i]->m_numSafeHouses);
+
+        Font_DrawText(buffer,
+            m_xSize - 290,
+            playerBoxHeight - 30 + (playerBoxHeight + 15) * i);
     }
 
     glColor(0xFF000000);

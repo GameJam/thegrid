@@ -110,6 +110,7 @@ void Server::Client::Update()
     }
 
     UpdateHackingStatus();
+    UpdateCounts();
 
 }
 
@@ -289,6 +290,30 @@ void Server::Client::UpdateHackingStatus()
             }
         }
     }
+}
+
+void Server::Client::UpdateCounts()
+{
+    m_player->m_numAgents = 0;
+    m_player->m_numSafeHouses = 0;
+
+    int numEntities = m_state->GetNumEntities();
+    for (int i = 0; i < numEntities; ++i)
+    {
+        Entity* entity = m_state->GetEntity(i);    
+        if (entity->GetOwnerId() == m_id)
+        {
+            if (entity->GetTypeId() == EntityTypeId_Building && !static_cast<BuildingEntity*>(entity)->m_raided)
+            {
+                ++m_player->m_numSafeHouses;
+            }
+            else if (entity->GetTypeId() == EntityTypeId_Agent)
+            {
+                ++m_player->m_numAgents;
+            }
+        }
+    }
+
 }
 
 AgentEntity* Server::Client::FindAgent(int agentId)

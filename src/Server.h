@@ -38,6 +38,8 @@ public:
         void Infiltrate(AgentEntity* agent);
         void NotifyCrime(int agentId, int stop);
 
+        void UpdateCounts();
+
     private:
 
         AgentEntity* FindAgent(int agentId);
