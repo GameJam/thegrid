@@ -4,9 +4,10 @@
 #include <math.h>
 #include <assert.h>
 
-const int gridSpacing = 150;
-const int xMapSize = gridSpacing * 9;
-const int yMapSize = gridSpacing * 6;
+const int gridSpacing       = 150;
+const int xMapSize          = gridSpacing * 9;
+const int yMapSize          = gridSpacing * 6;
+const int yStatusBarSize    = 140;
 
 static void DrawCircle(const Vec2& point, int radius)
 {
@@ -33,6 +34,7 @@ ClientGame::ClientGame(int xSize, int ySize) : m_host(1)
     m_hoverStop = -1;
 
     CenterMap(xMapSize / 2, yMapSize / 2);
+    UpdateActiveButtons();
 }
 
 void ClientGame::LoadResources()
@@ -46,7 +48,13 @@ void ClientGame::LoadResources()
 
     TextureLoad load[] = 
         { 
-            { &m_agentTexture, "assets/agent.png"         },
+            { &m_agentTexture,                          "assets/agent.png"              },
+            { &m_buttonTexture[ButtonId_Infiltrate],    "assets/action_infiltrate.png"  },
+            { &m_buttonTexture[ButtonId_Capture],       "assets/action_capture.png"     },
+            { &m_buttonTexture[ButtonId_Stakeout],      "assets/action_stakeout.png"    },
+            { &m_buttonTexture[ButtonId_Hack],          "assets/action_hack.png"        },
+            { &m_buttonTexture[ButtonId_Intel],         "assets/action_intel.png"       },
+            { &m_buttonShadowTexture,                   "assets/button_shadow.png"      },
         };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -75,7 +83,7 @@ void ClientGame::Render() const
 
     int numLines = sizeof(lineColor) / sizeof(unsigned long);
 
-    glClearColor( 0.97f, 0.96f, 0.89f, 0.0f );
+    glClearColor( 0.97f * 0.9f, 0.96f * 0.9f, 0.89f * 0.9f, 0.0f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
     //glEnable(GL_MULTISAMPLE);
@@ -205,21 +213,88 @@ void ClientGame::Render() const
         Render_DrawSprite(m_agentTexture, m_testState.m_test[i].x, m_testState.m_test[i].y);
     }
 
+    // Draw the UI.
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, m_xSize, m_ySize, 0);
+
+
+    /*
+    glDisable(GL_TEXTURE_2D);
+    glColor(0x80000000);
+    glBegin(GL_QUADS);
+    glVertex2i(m_xSize - xTextureSize - 40, 0);
+    glVertex2i(m_xSize, 0);
+    glVertex2i(m_xSize, m_ySize);
+    glVertex2i(m_xSize - xTextureSize - 40, m_ySize);
+    glEnd();
+
+    glEnable(GL_TEXTURE_2D);    
+    glColor(0xFFFFFFFF);
+    Render_DrawSprite(m_actionInfiltrateTexture, m_xSize - xTextureSize - 10, 10 + (yTextureSize + 8) * 0 );
+    Render_DrawSprite(m_actionInfiltrateTexture, m_xSize - xTextureSize - 10, 10 + (yTextureSize + 8) * 1 );
+    Render_DrawSprite(m_actionInfiltrateTexture, m_xSize - xTextureSize - 10, 10 + (yTextureSize + 8) * 2 );
+    Render_DrawSprite(m_actionInfiltrateTexture, m_xSize - xTextureSize - 10, 10 + (yTextureSize + 8) * 3 );
+    */
+
+    glDisable(GL_TEXTURE_2D);
+    glColor(0x80000000);
+    glBegin(GL_QUADS);
+    glVertex2i(0, m_ySize - yStatusBarSize);
+    glVertex2i(m_xSize, m_ySize - yStatusBarSize);
+    glVertex2i(m_xSize, m_ySize);
+    glVertex2i(0, m_ySize);
+    glEnd();
+
+    glEnable(GL_TEXTURE_2D);    
+
+    for (int i = 0; i < ButtonId_NumButtons; ++i)
+    {
+        if (m_button[i].enabled)
+        {
+            int xButton, yButton, xButtonSize, yButtonSize;
+            GetButtonRect((ButtonId)i, xButton, yButton, xButtonSize, yButtonSize);
+            glColor(0xFFFFFFFF);
+            int buttonOffset = 0;
+            int shadowOffset = 10;
+            Render_DrawSprite( m_buttonShadowTexture, xButton + shadowOffset, yButton + shadowOffset );
+            if (m_activeButton == i && m_activeButtonDown)
+            {
+                buttonOffset = 5;
+            }
+            Render_DrawSprite( m_buttonTexture[i], xButton + buttonOffset, yButton + buttonOffset );
+        }
+    }
+
 }
 
 void ClientGame::OnMouseDown(int x, int y, int button)
 {
     if (button == 1)
     {
-        // Toggle zoom on left click.
-        if (m_mapScale == 1)
+
+        ButtonId buttonId = GetButtonAtPoint(x, y);
+
+        if (buttonId != ButtonId_None)
         {
-            SetMapScale(2, x, y);
+            m_activeButton = buttonId;
+            m_activeButtonDown = true;
+            m_state = State_Button;
         }
-        else
+        else if (y < m_ySize - yStatusBarSize)
         {
-            SetMapScale(1, x, y);
+            // Toggle zoom on left click.
+            if (m_mapScale == 1)
+            {
+                SetMapScale(2, x, y);
+            }
+            else
+            {
+                SetMapScale(1, x, y);
+            }
         }
+
     }
 
     if (button == 2)
@@ -235,12 +310,15 @@ void ClientGame::OnMouseDown(int x, int y, int button)
 
     if (button == 3)
     {
-        // Pan with right mouse button.
-        if (m_state == State_Idle)
+        if (y < m_ySize - yStatusBarSize)
         {
-            m_state = State_Panning;
-            m_stateX = x;
-            m_stateY = y;
+            // Pan with right mouse button.
+            if (m_state == State_Idle)
+            {
+                m_state = State_Panning;
+                m_stateX = x;
+                m_stateY = y;
+            }
         }
     }
 
@@ -248,6 +326,23 @@ void ClientGame::OnMouseDown(int x, int y, int button)
 
 void ClientGame::OnMouseUp(int x, int y, int button)
 {
+
+    if (button == 1)
+    {
+        if (m_state == State_Button)
+        {
+            UpdateActiveButton(x, y);
+            m_state = State_Idle;
+
+            if (m_activeButtonDown)
+            {
+                m_activeButtonDown = false;
+                OnButtonPressed(m_activeButton);
+            }
+            m_activeButton = ButtonId_None;
+        }
+    }
+
     if (button == 3)
     {
         if (m_state == State_Panning)
@@ -259,6 +354,10 @@ void ClientGame::OnMouseUp(int x, int y, int button)
 
 void ClientGame::OnMouseMove(int x, int y)
 {
+    if (m_state == State_Button)
+    {
+        UpdateActiveButton(x, y);
+    }
     if (m_state == State_Panning)
     {
         int xDelta = m_stateX - x;
@@ -274,6 +373,10 @@ void ClientGame::OnMouseMove(int x, int y)
         ScreenToWorld(x, y, xWorld, yWorld);
         m_hoverStop = m_map.GetStopForPoint( Vec2(xWorld, yWorld) );
     }
+}
+
+void ClientGame::OnButtonPressed(ButtonId buttonId)
+{
 }
 
 void ClientGame::ScreenToWorld(int xScreen, int yScreen, int& xWorld, int& yWorld) const
@@ -368,4 +471,54 @@ void ClientGame::OnInitializeGame(Protocol::InitializeGamePacket& packet)
 {
     LogDebug("Initializing game with seed %i", packet.mapSeed);
     m_map.Generate(xMapSize, yMapSize, packet.mapSeed);
+}
+
+void ClientGame::GetButtonRect(ButtonId buttonId, int& x, int& y, int& xSize, int& ySize) const
+{
+    int numButtons = 0;
+    xSize = m_buttonShadowTexture.xSize;
+    ySize = m_buttonShadowTexture.ySize;
+    for (int i = 0; i < buttonId; ++i)
+    {
+        if (m_button[i].enabled)
+        {
+            ++numButtons;
+        }
+    }
+    x = 10 + (xSize + 8) * numButtons;
+    y = m_ySize - ySize - 20;
+}
+
+void ClientGame::UpdateActiveButtons()
+{
+    for (int i = 0; i < ButtonId_NumButtons; ++i)
+    {
+        m_button[i].enabled = true;
+    }
+    m_activeButton = ButtonId_None;
+    m_activeButtonDown = false;
+}
+
+ClientGame::ButtonId ClientGame::GetButtonAtPoint(int x, int y) const
+{
+    for (int i = 0; i < ButtonId_NumButtons; ++i)
+    {
+        if (m_button[i].enabled)
+        {
+            int xButton, yButton, xButtonSize, yButtonSize;
+            GetButtonRect((ButtonId)i, xButton, yButton, xButtonSize, yButtonSize);
+
+            if (x >= xButton && x <= xButton + xButtonSize &&
+                y >= yButton && y <= yButton + yButtonSize)
+            {
+                return (ButtonId)i;
+            }
+        }
+    }
+    return ButtonId_None;
+}
+
+void ClientGame::UpdateActiveButton(int x, int y)
+{
+    m_activeButtonDown = (GetButtonAtPoint(x, y) == m_activeButton);
 }

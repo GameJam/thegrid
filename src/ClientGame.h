@@ -32,6 +32,29 @@ public:
     virtual void OnPacket(int peerId, int channel, void* data, size_t size);
 
 private:
+  
+    enum ButtonId
+    {
+        ButtonId_Infiltrate,
+        ButtonId_Capture,
+        ButtonId_Stakeout,
+        ButtonId_Hack,
+        ButtonId_Intel,
+        ButtonId_NumButtons,
+        ButtonId_None,
+    };
+
+    enum State
+    {
+        State_Idle,
+        State_Panning,
+        State_Button,
+    };
+
+    struct Button
+    {
+        bool    enabled;  
+    };
 
     void ScreenToWorld(int xScreen, int yScreen, int& xWorld, int& yWorld) const;
 
@@ -47,14 +70,18 @@ private:
 
     void OnInitializeGame(Protocol::InitializeGamePacket& packet);
 
+    void GetButtonRect(ButtonId buttonId, int& x, int& y, int& xSize, int& ySize) const;
+
+    void UpdateActiveButtons();
+
+    ButtonId GetButtonAtPoint(int x, int y) const;
+
+    void OnButtonPressed(ButtonId buttonId);
+
+    void UpdateActiveButton(int x, int y);
+
 private:
-
-    enum State
-    {
-        State_Idle,
-        State_Panning,
-    };
-
+  
     int         m_xSize;
     int         m_ySize;
 
@@ -63,10 +90,17 @@ private:
     int         m_mapY;
 
     State       m_state;
+    ButtonId    m_activeButton;
+    bool        m_activeButtonDown;
     int         m_stateX;
     int         m_stateY;
 
     Texture     m_agentTexture;
+    Texture     m_buttonTexture[ButtonId_NumButtons];
+    Texture     m_buttonShadowTexture;
+
+    Button      m_button[ButtonId_NumButtons];
+
     Font        m_font;
 
     int         m_blipX;
