@@ -5,6 +5,8 @@
 #include "BuildingEntity.h"
 #include "PlayerEntity.h"
 #include "Utility.h"
+#include "UI.h"
+#include "Server.h"
 
 #include <math.h>
 #include <assert.h>
@@ -46,20 +48,21 @@ ClientGame::ClientGame(int xSize, int ySize)
       m_state(&m_typeRegistry)
 {
 
-    m_time      = 0;
-    m_clientId  = -1;
-    m_gameState = GameState_WaitingForServer;
-    m_mapScale  = 1;
-    m_xSize     = xSize;
-    m_ySize     = ySize;
-    m_mapState     = State_Idle;
-    m_blipX     = 0;
-    m_blipY     = 0;
-    m_serverId  = -1;
-    m_hoverStop = -1;
-    m_xMapSize  = 0;
-    m_yMapSize  = 0;
-    m_gridSpacing = 0;
+    m_server        = NULL;
+    m_time          = 0;
+    m_clientId      = -1;
+    m_gameState     = GameState_MainMenu;
+    m_mapScale      = 1;
+    m_xSize         = xSize;
+    m_ySize         = ySize;
+    m_mapState      = State_Idle;
+    m_blipX         = 0;
+    m_blipY         = 0;
+    m_serverId      = -1;
+    m_hoverStop     = -1;
+    m_xMapSize      = 0;
+    m_yMapSize      = 0;
+    m_gridSpacing   = 0;
     m_selectedAgent = -1;
     m_maxPlayersInGame = 0;
     m_gameOverTime = 0;
@@ -75,10 +78,13 @@ ClientGame::ClientGame(int xSize, int ySize)
     m_music = BASS_StreamCreateFile(FALSE, "assets/get_a_groove.mp3", 0, 0, BASS_SAMPLE_LOOP);
     BASS_ChannelPlay(m_music, TRUE);
 
+    m_lanListener.Initialize(Protocol::listenPort);
+
 }
 
 ClientGame::~ClientGame()
 {
+
     BASS_StreamFree(m_music);
     BASS_SampleFree(m_soundAction);
     BASS_SampleFree(m_soundDeath);
@@ -86,6 +92,13 @@ ClientGame::~ClientGame()
     BASS_SampleFree(m_soundHack);
     BASS_SampleFree(m_soundPickup);
     BASS_SampleFree(m_soundTrain);
+
+    if (m_server)
+    {
+        delete m_server;
+        m_server = NULL;
+    }
+
 }
 
 void ClientGame::LoadResources()
@@ -99,25 +112,28 @@ void ClientGame::LoadResources()
 
     TextureLoad load[] = 
         { 
-            { &m_agentTexture,                          "assets/agent.png"              },
-            { &m_agentIntelTexture,                     "assets/agent_intel.png"        },
-            { &m_agentStakeoutTexture,                  "assets/agent_stakeout.png"     },
-            { &m_intelTexture,                          "assets/intel.png"              },
-            { &m_buildingTowerTexture,                  "assets/building_tower.png"     },
-            { &m_buildingBankTexture,                   "assets/building_bank.png"      },
-            { &m_buildingHouseTexture,                  "assets/building_safehouse.png" },
-            { &m_buildingPoliceTexture,                 "assets/building_police.png"    },
-            { &m_buttonTexture[ButtonId_Infiltrate],    "assets/action_infiltrate.png"  },
-            { &m_buttonTexture[ButtonId_Capture],       "assets/action_capture.png"     },
-            { &m_buttonTexture[ButtonId_Stakeout],      "assets/action_stakeout.png"    },
-            { &m_buttonTexture[ButtonId_Hack],          "assets/action_hack.png"        },
-            { &m_buttonTexture[ButtonId_Intel],         "assets/action_drop.png"        },
-            { &m_buttonShadowTexture,                   "assets/button_shadow.png"      },
-            { &m_playerPortraitTexture,                 "assets/player_portrait.png"    },
-            { &m_playerEliminatedTexture,               "assets/player_eliminated.png"  },
-            { &m_playerBankHackedTexture,               "assets/player_bank_hacked.png"  },
-            { &m_playerCellHackedTexture,               "assets/player_cell_hacked.png"  },
-            { &m_playerPoliceHackedTexture,             "assets/player_police_hacked.png"  },
+            { &m_agentTexture,                          "assets/agent.png"                  },
+            { &m_agentIntelTexture,                     "assets/agent_intel.png"            },
+            { &m_agentStakeoutTexture,                  "assets/agent_stakeout.png"         },
+            { &m_intelTexture,                          "assets/intel.png"                  },
+            { &m_buildingTowerTexture,                  "assets/building_tower.png"         },
+            { &m_buildingBankTexture,                   "assets/building_bank.png"          },
+            { &m_buildingHouseTexture,                  "assets/building_safehouse.png"     },
+            { &m_buildingPoliceTexture,                 "assets/building_police.png"        },
+            { &m_buttonTexture[ButtonId_Infiltrate],    "assets/action_infiltrate.png"      },
+            { &m_buttonTexture[ButtonId_Capture],       "assets/action_capture.png"         },
+            { &m_buttonTexture[ButtonId_Stakeout],      "assets/action_stakeout.png"        },
+            { &m_buttonTexture[ButtonId_Hack],          "assets/action_hack.png"            },
+            { &m_buttonTexture[ButtonId_Intel],         "assets/action_drop.png"            },
+            { &m_buttonShadowTexture,                   "assets/button_shadow.png"          },
+            { &m_playerPortraitTexture,                 "assets/player_portrait.png"        },
+            { &m_playerEliminatedTexture,               "assets/player_eliminated.png"      },
+            { &m_playerBankHackedTexture,               "assets/player_bank_hacked.png"     },
+            { &m_playerCellHackedTexture,               "assets/player_cell_hacked.png"     },
+            { &m_playerPoliceHackedTexture,             "assets/player_police_hacked.png"   },
+            { &m_titleBackgroundTexture,                "assets/title_background.png"       },
+            { &m_titleTextTexture,                      "assets/title_text.png"             },
+            { &m_uiTexture,                             "assets/ui.png"                     },
         };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -137,8 +153,20 @@ void ClientGame::LoadResources()
 
 }
 
-void ClientGame::Render() const
+void ClientGame::Render()
 {
+
+    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST );
+    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST );
+ 
+    glEnable(GL_LINE_SMOOTH);
+    glEnable(GL_POLYGON_SMOOTH);
+
+    if (m_gameState == GameState_MainMenu)
+    {
+        RenderMainMenu();
+        return;
+    }
 
     if (m_gameState == GameState_WaitingForServer)
     {
@@ -162,12 +190,6 @@ void ClientGame::Render() const
 
     glClearColor( 0.97f * 0.9f, 0.96f * 0.9f, 0.89f * 0.9f, 0.0f );
     glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
-
-    glHint(GL_LINE_SMOOTH_HINT, GL_NICEST );
-    glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST );
- 
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_POLYGON_SMOOTH);
 
     glDisable(GL_TEXTURE_2D);
 
@@ -497,6 +519,11 @@ void ClientGame::Render() const
 
 void ClientGame::OnMouseDown(int x, int y, int button)
 {
+
+    if (m_gameState == GameState_MainMenu)
+    {
+
+    }
     
     if (m_gameState != GameState_Playing)
     {
@@ -747,16 +774,37 @@ void ClientGame::Connect(const char* hostName, int port)
     m_host.Connect(hostName, port);
 }
 
+void ClientGame::HostGame()
+{
+    assert(m_server == NULL);
+    m_gameState = GameState_WaitingForServer;
+    m_server = new Server();
+    Connect("127.0.0.1", 12345);
+}
+
 void ClientGame::Update(float deltaTime)
 {
+        
+    if (m_server)
+    {
+        m_server->Update(deltaTime);
+    }
+
+    if (m_gameState == GameState_MainMenu)
+    {
+        m_lanListener.Service();
+        return;
+    }
+
     m_time += deltaTime;
     m_host.Service(this);
-
-    UpdateActiveButtons();
     
     switch (m_gameState)
     {
     case GameState_Playing:
+        
+        UpdateActiveButtons();
+
         // Check for end game
         int numActivePlayers = 0;
         int index = 0;
@@ -1021,4 +1069,79 @@ const PlayerEntity* ClientGame::GetLocalPlayer() const
         }
     }
     return NULL;
+}
+
+void ClientGame::RenderMainMenu()
+{
+
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+    glClearColor( 0.97f * 0.9f, 0.96f * 0.9f, 0.89f * 0.9f, 0.0f );
+    glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+    const int titleOffset = 50;
+
+    glEnable(GL_TEXTURE_2D);
+
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    gluOrtho2D(0, m_xSize, m_ySize, 0);
+
+    glColor(0x80FFFFFF);
+    glBindTexture(GL_TEXTURE_2D, m_titleBackgroundTexture.handle);
+    glBegin(GL_QUADS);
+
+    glTexCoord2f(0, 0);
+    glVertex2i(0, titleOffset);
+    glTexCoord2f(m_xSize / m_titleBackgroundTexture.xSize, 0);
+    glVertex2i(m_xSize, titleOffset);
+    glTexCoord2f(m_xSize / m_titleBackgroundTexture.xSize, 1);
+    glVertex2i(m_xSize, titleOffset + m_titleBackgroundTexture.ySize);
+    glTexCoord2f(0, 1);
+    glVertex2i(0, titleOffset + m_titleBackgroundTexture.ySize);
+
+    glEnd();
+
+    glColor(0xFFFFFFFF);
+    Render_DrawSprite(m_titleTextTexture, (m_xSize - m_titleTextTexture.xSize) / 2, titleOffset + (m_titleBackgroundTexture.ySize - m_titleTextTexture.ySize) / 2);
+
+    // Draw the buttons.
+
+    int xButtonSize = 400;
+    int yButtonSize = 50;
+
+    UI_Begin( m_uiTexture.handle, m_xSize, m_ySize );
+
+    if (UI_Button(UI_ID, m_font, (m_xSize - xButtonSize) / 2, m_ySize - 300 + (yButtonSize + 10) * 0, xButtonSize, yButtonSize, "Host a game"))
+    {
+        HostGame();
+    }
+
+    UI_Button(UI_ID, m_font, (m_xSize - xButtonSize) / 2, m_ySize - 300 + (yButtonSize + 10) * 1, xButtonSize, yButtonSize, "Join a game");
+
+    UI_End();
+
+}
+
+bool ClientGame::DoButton(const char* text, int x, int y, int xSize, int ySize) const
+{
+    glDisable(GL_TEXTURE_2D);
+    glColor(0xFFFFFF80);
+    glBegin(GL_QUADS);
+    glVertex2i(x, y);
+    glVertex2i(x + xSize, y);
+    glVertex2i(x + xSize, y + ySize);
+    glVertex2i(x, y + ySize);
+    glEnd();
+
+    int textHeight = Font_GetTextHeight(m_font);
+    int textWidth  = Font_GetTextWidth(m_font, text);
+
+    glColor(0xFF000000);
+    Font_BeginDrawing(m_font);
+    Font_DrawText(text, x + (xSize - textWidth) / 2, y + (ySize - textHeight) / 2);
+    Font_EndDrawing();
+
+    return true;
 }

@@ -175,15 +175,10 @@ int main(int argc, char* argv[])
     BASS_Init(-1, 44100, 0, sysInfo.window, NULL);
 
     const char* hostName = "127.0.0.1";
-    Server* server = NULL;
 
     if (HasArgument(arguments, "connect"))
     {
         hostName = GetArgument(arguments, "connect");
-    }
-    else
-    {
-        server = new Server();
     }
 
     ClientGame* game = new ClientGame(xSize, ySize);
@@ -204,18 +199,11 @@ int main(int argc, char* argv[])
         game->Update(deltaTimeSeconds);
         game->Render();
         SDL_GL_SwapBuffers();
-        
-        if (server)
-        {
-            server->Update(deltaTimeSeconds);
-        }
+
     }
 
     delete game;
     game = NULL;
-
-    delete server;
-    server = NULL;
 
     Host::Shutdown();
     Log::Shutdown();

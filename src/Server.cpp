@@ -8,7 +8,8 @@
 #include <SDL.h>
 #include <algorithm>
 
-static const float kServerTickRate = 1.0f / 30.0f;
+static const float kServerTickRate      = 1.0f / 30.0f;
+static const float kServerBroadcastRate = 1.0f;
 
 Server::Client::Client(int id, Server& server)
 {
@@ -235,13 +236,15 @@ Server::Server()
       m_globalState(&m_typeRegistry)
 {
     m_host.Listen(12345);
+    m_lanBroadcast.Initialize(Protocol::listenPort);
 
-    m_time              = 0;
-    m_timeSinceUpdate   = 0;
-    m_mapSeed           = 42;
-    m_gridSpacing       = 150;
-    m_xMapSize          = m_gridSpacing * 9;
-    m_yMapSize          = m_gridSpacing * 6;
+    m_time                  = 0;
+    m_timeSinceUpdate       = 0;
+    m_timeSinceBroadcast    = 0;
+    m_mapSeed               = 42;
+    m_gridSpacing           = 150;
+    m_xMapSize              = m_gridSpacing * 9;
+    m_yMapSize              = m_gridSpacing * 6;
 
     m_map.Generate(m_xMapSize, m_yMapSize, m_mapSeed);
 
@@ -260,6 +263,13 @@ void Server::Update(float deltaTime)
 {
 
     m_timeSinceUpdate += deltaTime;
+    m_timeSinceBroadcast += deltaTime;
+
+    if (m_timeSinceBroadcast > kServerBroadcastRate)
+    {
+        m_lanBroadcast.BroadcastInfo();
+        m_timeSinceBroadcast = 0.0f;
+    }
     
     if (m_timeSinceUpdate > kServerTickRate)
     {

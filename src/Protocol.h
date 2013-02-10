@@ -4,6 +4,8 @@
 namespace Protocol
 {
 
+const int listenPort = 12347;
+
 enum PacketType
 {
     PacketType_InitializeGame,

@@ -10,11 +10,13 @@
 #include "EntityState.h"
 #include "EntityType.h"
 #include "EntityTypeRegistry.h"
+#include "LanListener.h"
 
 #include <bass.h>
 
 class AgentEntity;
 class PlayerEntity;
+class Server;
 
 class ClientGame : Host::Handler
 {
@@ -25,13 +27,14 @@ public:
     ~ClientGame();
 
     void LoadResources();
-    void Render() const;
+    void Render();
 
     void OnMouseDown(int x, int y, int button);
     void OnMouseUp(int x, int y, int button);
     void OnMouseMove(int x, int y);
 
     void Connect(const char* hostName, int port);
+    void HostGame();
 
     void Update(float deltaTime);
 
@@ -61,6 +64,7 @@ private:
 
     enum GameState
     {
+        GameState_MainMenu,
         GameState_WaitingForServer,
         GameState_Playing,
         GameState_GameOver
@@ -109,9 +113,16 @@ private:
     
     void EndGame(bool isWinner);
 
+    void RenderMainMenu();
+
+    bool DoButton(const char* text, int x, int y, int xSize, int ySize) const;
+
 private:
 
     static const Protocol::Order kButtonToOrder[ButtonId_NumButtons];
+
+    Server*             m_server;
+    LanListener         m_lanListener;
 
     float               m_time;
     int                 m_clientId;
@@ -151,6 +162,9 @@ private:
     Texture             m_playerBankHackedTexture;
     Texture             m_playerCellHackedTexture;
     Texture             m_playerPoliceHackedTexture;
+    Texture             m_titleTextTexture;
+    Texture             m_titleBackgroundTexture;
+    Texture             m_uiTexture;
 
     Button              m_button[ButtonId_NumButtons];
 

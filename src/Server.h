@@ -10,6 +10,7 @@
 #include "Map.h"
 #include "AgentEntity.h"
 #include "Random.h"
+#include "LanBroadcast.h"
 
 #include <hash_map>
 
@@ -72,6 +73,8 @@ private:
     void SendClientState(int peerId);
 
     typedef stdext::hash_map<int, Client*> ClientMap;
+
+    LanBroadcast        m_lanBroadcast;
     Host                m_host;
     ClientMap           m_clientMap;
     EntityTypeRegistry  m_typeRegistry;
@@ -79,6 +82,7 @@ private:
     Map                 m_map;
     float               m_time;
     float               m_timeSinceUpdate;
+    float               m_timeSinceBroadcast;
 
     int                 m_mapSeed;
     int                 m_gridSpacing;
