@@ -125,7 +125,8 @@ void Server::Client::CheckForStakeout(AgentEntity* agent)
     while (m_state->GetNextEntityWithType(index, testAgent))
     {
         if (testAgent->m_state == AgentEntity::State_Stakeout &&
-            testAgent->m_currentStop == stop)
+            testAgent->m_currentStop == stop &&
+            testAgent->GetOwnerId() != m_id)
         {
             int id = testAgent->GetOwnerId();
             m_server->SendNotification(id, Protocol::Notification_AgentSpotted, agent->GetId(), agent->m_currentStop, -1);
