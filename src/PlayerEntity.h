@@ -23,6 +23,7 @@ public:
     int     m_lastIntelFound;
     int     m_numSafeHouses;
     int     m_numAgents;
+    int     m_numIntels;
 
 };
 

@@ -39,6 +39,7 @@ public:
         void TakeIntel(AgentEntity* agent);
         void DropIntel(AgentEntity* agent);
         void NotifyCrime(int agentId, int stop);
+        PlayerEntity* GetPlayer();
 
         void UpdateCounts();
 
