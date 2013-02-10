@@ -12,7 +12,6 @@
 #include <assert.h>
 
 const int yStatusBarSize    = 140;
-const float kPi = 3.14159265359f;
 
 const Protocol::Order ClientGame::kButtonToOrder[ButtonId_NumButtons] = 
 {
@@ -31,24 +30,6 @@ static float EaseInOutQuad(float t, float b, float c, float d)
     return -c/2 * (t*(t-2) - 1) + b;
 };
 
-static bool NotificationBounceFunc(Particle& particle, float deltaTime)
-{
-
-    const float kDuration = 1.0;
-
-    particle.time += deltaTime;
-    if (particle.time > kDuration)
-    {
-        return false;
-    }
-
-    float scale = sinf(kPi * particle.time / kDuration);
-    particle.scale = Vec2(scale, scale);
-    particle.color = 0xffffff | (Clamp(static_cast<int>(255*scale), 0, 255) << 24);
-    return true;
-
-}
-
 
 static void DrawCircle(const Vec2& point, float radius)
 {
@@ -65,7 +46,8 @@ static void DrawCircle(const Vec2& point, float radius)
 
 ClientGame::ClientGame(int xSize, int ySize, bool playMusic) 
     : m_host(1),
-      m_state(&m_typeRegistry)
+      m_state(&m_typeRegistry),
+      m_notificationLog(&m_map, &m_mapParticles, &m_font)
 {
 
     m_server        = NULL;
@@ -116,7 +98,6 @@ ClientGame::~ClientGame()
     BASS_SampleFree(m_soundHack);
     BASS_SampleFree(m_soundPickup);
     BASS_SampleFree(m_soundTrain);
-    BASS_SampleFree(m_soundCrime);
 
     if (m_server)
     {
@@ -159,10 +140,6 @@ void ClientGame::LoadResources()
             { &m_titleBackgroundTexture,                "assets/title_background.png"               },
             { &m_titleTextTexture,                      "assets/title_text.png"                     },
             { &m_uiTexture,                             "assets/ui.png"                             },
-            { &m_notificationAgentLost,                 "assets/notification_agent_lost.png"        },
-            { &m_notificationAgentCaptured,             "assets/notification_agent_captured.png"    },
-            { &m_notificationAgentSpotted,              "assets/notification_agent_spotted.png"     },
-            { &m_notificationCrime,                     "assets/notification_crime.png"             },
         };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -179,7 +156,8 @@ void ClientGame::LoadResources()
     m_soundHack     = BASS_SampleLoad(false, "assets/sound_hack.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
     m_soundPickup   = BASS_SampleLoad(false, "assets/sound_pickup.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
     m_soundTrain    = BASS_SampleLoad(false, "assets/sound_train.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
-    m_soundCrime    = BASS_SampleLoad(false, "assets/sound_crime.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
+
+    m_notificationLog.LoadResources();
 
 }
 
@@ -457,6 +435,8 @@ void ClientGame::Render()
             Render_DrawSprite( m_buttonTexture[i], xButton + buttonOffset, yButton + buttonOffset );
         }
     }
+
+    m_notificationLog.Draw(m_xSize, m_ySize);
 
     const int maxPlayers = 32;
     const PlayerEntity* player[maxPlayers] = { NULL };
@@ -981,39 +961,7 @@ void ClientGame::OnInitializeGame(Protocol::InitializeGamePacket& packet)
 void ClientGame::OnNotification(Protocol::NotificationPacket& packet)
 {
     LogDebug("Notification: %d", packet.notification);
-
-
-
-    switch (packet.notification)
-    {
-    case Protocol::Notification_AgentCaptured:
-        {
-            const Stop& stop = m_map.GetStop(packet.stop);        
-            AddNotificationParticle(&m_notificationAgentCaptured, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
-        }
-        break;
-    case Protocol::Notification_AgentSpotted:
-        {
-            const Stop& stop = m_map.GetStop(packet.stop);        
-            AddNotificationParticle(&m_notificationAgentSpotted, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
-        }
-        break;
-    case Protocol::Notification_CrimeDetected:
-        {
-            const Stop& stop = m_map.GetStop(packet.stop);        
-            AddNotificationParticle(&m_notificationCrime, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
-            PlaySample(m_soundCrime);
-        }
-        break;
-    case Protocol::Notification_AgentLost:
-        {
-            const Stop& stop = m_map.GetStop(packet.stop);        
-            AddNotificationParticle(&m_notificationAgentLost, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
-        }
-        break;
-
-    }
-
+    m_notificationLog.AddNotification(m_time, packet);
 }
 
 void ClientGame::GetButtonRect(ButtonId buttonId, int& x, int& y, int& xSize, int& ySize) const
@@ -1281,13 +1229,3 @@ bool ClientGame::DoButton(const char* text, int x, int y, int xSize, int ySize) 
     return true;
 }
 
-void ClientGame::AddNotificationParticle(Texture* texture, int x, int y)
-{
-    Particle* p = m_mapParticles.Add();
-    p->texture = texture;
-    p->position = Vec2(x, y);
-    p->scale = Vec2(0, 0);
-    p->color = 0xffffffff;
-    p->rotation = 0;
-    p->updateFunction = NotificationBounceFunc;
-}
