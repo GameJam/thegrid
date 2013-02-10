@@ -65,7 +65,22 @@ int Server::Client::GetId() const
 
 void Server::Client::Update()
 {
-    
+
+    // Update lost agents
+    for (AgentList::iterator i = m_agents.begin(); i != m_agents.end();)
+    {
+        if ((*i)->GetOwnerId() != m_id)
+        {
+            // Agent lost!
+            i = m_agents.erase(i);
+        }
+        else
+        {
+            ++i;
+        }
+    }
+
+    // Move agents
     for (size_t i = 0; i < m_agents.size(); ++i)
     {
         AgentEntity* agent = m_agents[i];
@@ -105,7 +120,21 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
         break;
 
     case Protocol::Order_Capture:
-        LogMessage("Capturing!");
+        for (int i = 0; i < m_state->GetNumEntities(); ++i)
+        {
+            Entity* entity = m_state->GetEntity(i);
+            if (entity->GetTypeId() == EntityTypeId_Agent && entity->GetOwnerId() != m_id)
+            {
+                AgentEntity* agent = static_cast<AgentEntity*>(entity);
+                if (agent->m_currentStop == agent->m_currentStop)
+                {
+                    // Capture this agent!
+                    entity->SetOwnerId(m_id);
+                    m_agents.push_back(agent);
+                    break;
+                }
+            }
+        }
         break;
 
     }
