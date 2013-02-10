@@ -401,23 +401,20 @@ void ClientGame::OnMouseDown(int x, int y, int button)
             }
 
             UpdateActiveButtons();
-
-            // First click deselects.
-            if (m_selectedAgent == -1 && !hasSelection)
-            {
-                // Toggle zoom on left click.
-                if (m_mapScale == 1)
-                {
-                    SetMapScale(2, x, y);
-                }
-                else
-                {
-                    SetMapScale(1, x, y);
-                }
-            }
         }
 
     }
+
+    // Zoom.
+    if (button == 4)
+    {
+        SetMapScale(1, x, y);
+    }
+    if (button == 5)
+    {
+        SetMapScale(2, x, y);
+    }
+
 
     if (button == 2)
     {
