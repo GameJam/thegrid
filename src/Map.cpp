@@ -87,8 +87,8 @@ void Map::Generate(int xSize, int ySize, int seed)
             if (random.Generate(0, 100) > prob && line < maxLines)
             {
                 Vec2 point;
-                point.x = x * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist);
-                point.y = y * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist);
+                point.x = (float)(x * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
+                point.y = (float)(y * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
                 AddStop(point, line, true);
                 ++line;
             }

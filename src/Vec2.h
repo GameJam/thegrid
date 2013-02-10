@@ -9,6 +9,7 @@ class Vec2
 public:
 
     Vec2() { }
+    Vec2(int _x, int _y) : x((float)_x), y((float)_y) { }
     Vec2(float _x, float _y) : x(_x), y(_y) { }
 
     void Normalize();

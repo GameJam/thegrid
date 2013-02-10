@@ -7,7 +7,7 @@
 
 const int yStatusBarSize    = 140;
 
-static void DrawCircle(const Vec2& point, int radius)
+static void DrawCircle(const Vec2& point, float radius)
 {
     const int numSides = 16;
     glBegin(GL_TRIANGLE_FAN);
@@ -196,14 +196,14 @@ void ClientGame::Render() const
         if (stop.line == -1)
         {
             glColor( 0xFF000000 );
-            DrawCircle(stop.point, 8 + inflate);
+            DrawCircle(stop.point, 8.0f + inflate);
             glColor( 0xFFFFFFFF );
-            DrawCircle(stop.point, 6 + inflate);
+            DrawCircle(stop.point, 6.0f + inflate);
         }
         else
         {
             glColor( lineColor[stop.line % numLines] );
-            DrawCircle(stop.point, 8 + inflate);
+            DrawCircle(stop.point, 8.0f + inflate);
         }
     }
 
