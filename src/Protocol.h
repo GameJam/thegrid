@@ -25,6 +25,7 @@ struct InitializeGamePacket
 {
     char        packetType;
     float       time;
+    int         clientId;
     int         mapSeed;
     int         gridSpacing;
     int         xMapSize;

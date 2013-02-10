@@ -2,23 +2,25 @@
 #define GAME_ENTITY_H
 
 #include "EntityType.h"
+#include "EntityTypeRegistry.h"
 
 class Entity
 {
 
 public:
 
-    Entity(EntityTypeId typeId);
+    template<class T>
+    static T* CreateEntity(int entityId, EntityTypeId typeId);
 
-    void SetId(int id);
     int GetId() const;
+    EntityTypeId GetTypeId() const;
 
     void SetOwnerId(int clientId);
     int GetOwnerId() const;
 
-    EntityTypeId GetTypeId() const;
-
 protected:
+
+    Entity();
 
     int             m_id;
     int             m_ownerId;
@@ -26,18 +28,13 @@ protected:
 
 };
 
-
-class TestEntity : public Entity
+template<class T>
+T* Entity::CreateEntity(int entityId, EntityTypeId typeId)
 {
-
-public:
-    TestEntity() : Entity(EntityTypeId_Test) {}
-
-    int clientId;
-    int x;
-    int y;
-
-};
-
+    T* entity = new T();
+    entity->m_id = entityId;
+    entity->m_typeId = typeId;
+    return entity;
+}
 
 #endif

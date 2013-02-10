@@ -11,10 +11,10 @@ struct SerializeHeader
 };
 
 
-EntityState::EntityState(EntityTypeList* entityTypeList)
+EntityState::EntityState(EntityTypeRegistry* typeRegistry)
 {
     m_nextEntityId = 1;  
-    m_entityTypeList = entityTypeList;
+    m_typeRegistry = typeRegistry;
 }
 
 void EntityState::SetTime(float time)
@@ -37,13 +37,6 @@ Entity* EntityState::GetEntity(int entityIndex)
     return m_entities[entityIndex];
 }
 
-void EntityState::AddEntity(Entity* entity)
-{
-    entity->SetId(m_nextEntityId);
-    ++m_nextEntityId;
-    m_entities.push_back(entity);
-}
-
 const Entity* EntityState::GetEntity(int entityIndex) const
 {
     return m_entities[entityIndex];
@@ -58,7 +51,7 @@ size_t EntityState::GetSerializedSize(int clientId) const
         Entity* entity = m_entities[i];
         if (entity->GetOwnerId() == clientId || entity->GetOwnerId() == -1)
         {
-            EntityType* entityType = (*m_entityTypeList)[entity->GetTypeId()];
+            EntityType* entityType = m_typeRegistry->GetType(entity->GetTypeId());
             size += entityType->GetSerializedSize(entity) + sizeof(EntityTypeId);
         }
     }
@@ -85,7 +78,7 @@ void EntityState::Serialize(int clientId, void* buffer, size_t size) const
             *reinterpret_cast<EntityTypeId*>(entityBuffer) = typeId;
             entityBuffer += sizeof(EntityTypeId);
 
-            EntityType* entityType = (*m_entityTypeList)[typeId];
+            EntityType* entityType = m_typeRegistry->GetType(typeId);
             entityBuffer += entityType->Serialize(m_entities[i], entityBuffer);
 
             ++numEntities;
@@ -114,16 +107,16 @@ void EntityState::Deserialize(const void* buffer, size_t size)
         EntityTypeId typeId = *reinterpret_cast<const EntityTypeId*>(entityBuffer);
         entityBuffer += sizeof(EntityTypeId);
 
-        EntityType* entityType = (*m_entityTypeList)[typeId];
+        EntityType* entityType = m_typeRegistry->GetType(typeId);
 
         if (m_entities[i] == NULL)
         {
-            m_entities[i] = entityType->Create();
+            m_entities[i] = entityType->Create(-1);
         }
         else if (m_entities[i]->GetTypeId() != typeId)
         {
             delete m_entities[i];
-            m_entities[i] = entityType->Create();
+            m_entities[i] = entityType->Create(-1);
         }
 
         entityBuffer += entityType->Deserialize(m_entities[i], entityBuffer);
@@ -140,5 +133,17 @@ void EntityState::Deserialize(const void* buffer, size_t size)
     }
 
     assert(entityBuffer == static_cast<const char*>(buffer) + size);
+
+}
+
+Entity* EntityState::CreateEntity(EntityTypeId typeId, int ownerId)
+{
+
+    EntityType* entityType = m_typeRegistry->GetType(typeId);
+    Entity* entity = entityType->Create(m_nextEntityId);
+    ++m_nextEntityId;
+    entity->SetOwnerId(ownerId);
+    m_entities.push_back(entity);
+    return entity;
 
 }

@@ -1,6 +1,6 @@
 #include "BuildingEntity.h"
 
-BuildingEntity::BuildingEntity() : Entity(EntityTypeId_Building)
+BuildingEntity::BuildingEntity()
 {
     m_stop = 0;
 }

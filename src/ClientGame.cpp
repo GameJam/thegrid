@@ -43,12 +43,11 @@ static void DrawCircle(const Vec2& point, float radius)
 
 ClientGame::ClientGame(int xSize, int ySize) 
     : m_host(1),
-      m_state(&m_entityTypes)
+      m_state(&m_typeRegistry)
 {
 
-    InitializeEntityTypes(m_entityTypes);
-
     m_time      = 0;
+    m_clientId  = -1;
     m_gameState = GameState_WaitingForServer;
     m_mapScale  = 1;
     m_xSize     = xSize;
@@ -62,6 +61,9 @@ ClientGame::ClientGame(int xSize, int ySize)
     m_yMapSize  = 0;
     m_gridSpacing = 0;
     m_selectedAgent = -1;
+    m_maxPlayersInGame = 0;
+    m_gameOverTime = 0;
+    m_isWinner = false;
 
     UpdateActiveButtons();
 
@@ -379,17 +381,7 @@ void ClientGame::Render() const
 
     const int maxPlayers = 32;
     const PlayerEntity* player[maxPlayers] = { NULL };
-
-    int numPlayers = 0;
-    for (int i = 0; i < m_state.GetNumEntities(); ++i)
-    {
-        const Entity* entity = m_state.GetEntity(i);
-        if (entity->GetTypeId() == EntityTypeId_Player && numPlayers < maxPlayers)
-        {
-            player[numPlayers] = static_cast<const PlayerEntity*>(entity);
-            ++numPlayers;
-        }
-    }
+    int numPlayers = m_state.GetEntitiesWithType(player, maxPlayers);
 
     // Show the players.
 
@@ -427,9 +419,12 @@ void ClientGame::Render() const
     }
 
     glColor(0xFF000000);
-    char timeBuffer[32];
-    sprintf(timeBuffer, "%.2f", m_time);
-    Font_DrawText(timeBuffer, 10, 10);
+    
+    if (m_gameState == GameState_GameOver)
+    {
+        Font_DrawText(m_isWinner ? "You WIN!" : "GAME OVER", 10, 10);
+    }
+
     Font_EndDrawing();
 
     glEnable(GL_TEXTURE_2D);
@@ -448,6 +443,12 @@ void ClientGame::Render() const
 
 void ClientGame::OnMouseDown(int x, int y, int button)
 {
+    
+    if (m_gameState != GameState_Playing)
+    {
+        return;
+    }
+
     if (button == 1)
     {
 
@@ -533,24 +534,20 @@ int ClientGame::GetAgentUnderCursor(int xScreen, int yScreen) const
 
     int xWorld, yWorld;
     ScreenToWorld(xScreen, yScreen, xWorld, yWorld);
-
-    for (int i = 0; i < m_state.GetNumEntities(); ++i)
+    
+    int index = 0;
+    const AgentEntity* agent = NULL;
+    while (m_state.GetNextEntityWithType(index, agent))
     {
-        const Entity* entity = m_state.GetEntity(i);
-        if (entity->GetTypeId() == EntityTypeId_Agent && entity->GetId() != m_selectedAgent)
-        {
-            const AgentEntity* agent = static_cast<const AgentEntity*>(entity);
-            Vec2 position = GetAgentPosition(agent);
+        Vec2 position = GetAgentPosition(agent);
 
-            if (xWorld >= position.x - m_agentTexture.xSize / 2 &&
-                yWorld >= position.y - m_agentTexture.ySize / 2 &&
-                xWorld <= position.x + m_agentTexture.xSize / 2 &&
-                yWorld <= position.y + m_agentTexture.ySize / 2)
-            {
-                return agent->GetId();
-            }
-        }
-        
+        if (xWorld >= position.x - m_agentTexture.xSize / 2 &&
+            yWorld >= position.y - m_agentTexture.ySize / 2 &&
+            xWorld <= position.x + m_agentTexture.xSize / 2 &&
+            yWorld <= position.y + m_agentTexture.ySize / 2)
+        {
+            return agent->GetId();
+        }        
     }
 
     return -1;
@@ -583,6 +580,11 @@ Vec2 ClientGame::GetAgentPosition(const AgentEntity* agent) const
 void ClientGame::OnMouseUp(int x, int y, int button)
 {
 
+    if (m_gameState != GameState_Playing)
+    {
+        return;
+    }
+
     if (button == 1)
     {
         if (m_mapState == State_Button)
@@ -610,6 +612,12 @@ void ClientGame::OnMouseUp(int x, int y, int button)
 
 void ClientGame::OnMouseMove(int x, int y)
 {
+
+    if (m_gameState != GameState_Playing)
+    {
+        return;
+    }
+
     if (m_mapState == State_Button)
     {
         UpdateActiveButton(x, y);
@@ -688,7 +696,40 @@ void ClientGame::Update(float deltaTime)
 {
     m_time += deltaTime;
     m_host.Service(this);
+
     UpdateActiveButtons();
+    
+    switch (m_gameState)
+    {
+    case GameState_Playing:
+        // Check for end game
+        int numActivePlayers = 0;
+        int index = 0;
+        const PlayerEntity* player;
+        while (m_state.GetNextEntityWithType(index, player))
+        {
+            if (!player->m_eliminated)
+            {
+                ++numActivePlayers;
+                continue;
+            }
+            else if (player->m_clientId == m_clientId)
+            {
+                // We're out!
+                EndGame(false);
+                break;
+            }
+        }
+        
+        m_maxPlayersInGame = Max(m_maxPlayersInGame, numActivePlayers);
+        if (m_gameState != GameState_GameOver && numActivePlayers == 1 && m_maxPlayersInGame > 1)
+        {
+            // Last one standing
+            EndGame(true);
+        }
+        break;
+    }
+    
 }
 
 void ClientGame::OnConnect(int peerId)
@@ -748,6 +789,7 @@ void ClientGame::OnInitializeGame(Protocol::InitializeGamePacket& packet)
 {
     LogDebug("Initializing game with seed %i", packet.mapSeed);
     m_time = packet.time;
+    m_clientId = packet.clientId;
     m_xMapSize = packet.xMapSize;
     m_yMapSize = packet.yMapSize;
     m_gridSpacing = packet.gridSpacing;
@@ -876,11 +918,11 @@ StructureType ClientGame::GetStructureAtStop(int stop) const
         return structureType;
     }
 
-    for (int i = 0; i < m_state.GetNumEntities(); ++i)
+    int index = 0;
+    const BuildingEntity* entity;
+    while (m_state.GetNextEntityWithType(index, entity))
     {
-        const Entity* entity = m_state.GetEntity(i);
-        if (entity->GetTypeId() == EntityTypeId_Building &&
-            static_cast<const BuildingEntity*>(entity)->m_stop == stop)
+        if (entity->m_stop == stop)
         {
             return StructureType_House;
         }
@@ -899,4 +941,11 @@ const Entity* ClientGame::GetEntity(int id) const
         }
     }
     return NULL;
+}
+
+void ClientGame::EndGame(bool isWinner)
+{
+    m_gameState = GameState_GameOver;
+    m_gameOverTime = m_time;
+    m_isWinner = isWinner;
 }

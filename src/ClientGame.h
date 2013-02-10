@@ -9,6 +9,7 @@
 #include "Protocol.h"
 #include "EntityState.h"
 #include "EntityType.h"
+#include "EntityTypeRegistry.h"
 
 #include <bass.h>
 
@@ -102,67 +103,74 @@ private:
     StructureType GetStructureAtStop(int stop) const;
 
     const Entity* GetEntity(int id) const;
+    
+    void EndGame(bool isWinner);
 
 private:
 
     static const Protocol::Order kButtonToOrder[ButtonId_NumButtons];
 
-    float       m_time;
-    int         m_xSize;
-    int         m_ySize;
+    float               m_time;
+    int                 m_clientId;
+    int                 m_xSize;
+    int                 m_ySize;
 
-    int         m_mapScale;
-    int         m_mapX;
-    int         m_mapY;
+    int                 m_mapScale;
+    int                 m_mapX;
+    int                 m_mapY;
 
-    HSTREAM     m_music;
-    HSAMPLE     m_soundAction;
-    HSAMPLE     m_soundDeath;
-    HSAMPLE     m_soundDrop;
-    HSAMPLE     m_soundHack;
-    HSAMPLE     m_soundPickup;
-    HSAMPLE     m_soundTrain;
+    HSTREAM             m_music;
+    HSAMPLE             m_soundAction;
+    HSAMPLE             m_soundDeath;
+    HSAMPLE             m_soundDrop;
+    HSAMPLE             m_soundHack;
+    HSAMPLE             m_soundPickup;
+    HSAMPLE             m_soundTrain;
 
-    MapState    m_mapState;
-    ButtonId    m_activeButton;
-    bool        m_activeButtonDown;
-    int         m_stateX;
-    int         m_stateY;
+    MapState            m_mapState;
+    ButtonId            m_activeButton;
+    bool                m_activeButtonDown;
+    int                 m_stateX;
+    int                 m_stateY;
 
-    Texture     m_agentTexture;
-    Texture     m_agentStakeoutTexture;
-    Texture     m_agentIntelTexture;
-    Texture     m_intelTexture;
-    Texture     m_buildingTowerTexture;
-    Texture     m_buildingBankTexture;
-    Texture     m_buildingHouseTexture;
-    Texture     m_buildingPoliceTexture;
-    Texture     m_buttonTexture[ButtonId_NumButtons];
-    Texture     m_buttonShadowTexture;
-    Texture     m_playerPortraitTexture;
-    Texture     m_playerEliminatedTexture;
+    Texture             m_agentTexture;
+    Texture             m_agentStakeoutTexture;
+    Texture             m_agentIntelTexture;
+    Texture             m_intelTexture;
+    Texture             m_buildingTowerTexture;
+    Texture             m_buildingBankTexture;
+    Texture             m_buildingHouseTexture;
+    Texture             m_buildingPoliceTexture;
+    Texture             m_buttonTexture[ButtonId_NumButtons];
+    Texture             m_buttonShadowTexture;
+    Texture             m_playerPortraitTexture;
+    Texture             m_playerEliminatedTexture;
 
-    Button      m_button[ButtonId_NumButtons];
+    Button              m_button[ButtonId_NumButtons];
 
-    Font        m_font;
+    Font                m_font;
 
-    int         m_blipX;
-    int         m_blipY;
+    int                 m_blipX;
+    int                 m_blipY;
 
-    GameState   m_gameState;
-    Map         m_map;
-    int         m_xMapSize;
-    int         m_yMapSize;
-    int         m_gridSpacing;
+    GameState           m_gameState;
+    Map                 m_map;
+    int                 m_xMapSize;
+    int                 m_yMapSize;
+    int                 m_gridSpacing;
 
-    Host        m_host;
-    int         m_serverId;
+    Host                m_host;
+    int                 m_serverId;
 
-    EntityTypeList m_entityTypes;
-    EntityState    m_state;
+    EntityTypeRegistry  m_typeRegistry;
+    EntityState         m_state;
 
-    int         m_hoverStop;
-    int         m_selectedAgent;
+    int                 m_hoverStop;
+    int                 m_selectedAgent;
+
+    int                 m_maxPlayersInGame;
+    float               m_gameOverTime;
+    bool                m_isWinner;
 
 };
 

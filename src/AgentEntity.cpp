@@ -1,6 +1,6 @@
 #include "AgentEntity.h"
 
-AgentEntity::AgentEntity() : Entity(EntityTypeId_Agent)
+AgentEntity::AgentEntity()
 {
     m_currentStop   = -1;
     m_targetStop    = -1;

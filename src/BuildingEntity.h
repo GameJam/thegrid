@@ -7,10 +7,13 @@
 // Safe house
 class BuildingEntity : public Entity
 {
+
 public:
 
-    BuildingEntity();
+    enum { TypeId = EntityTypeId_Building };
     
+    BuildingEntity();
+
     int             m_stop;
 
 };

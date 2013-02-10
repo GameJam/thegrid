@@ -4,15 +4,8 @@
 #include <assert.h>
 #include <vector>
 
-enum EntityTypeId
-{
-    EntityTypeId_Test,
-    EntityTypeId_Agent,
-    EntityTypeId_Building,
-    EntityTypeId_Player,
-    EntityTypeId_Count
-};
 
+enum EntityTypeId;
 class Entity;
 
 class EntityType
@@ -22,7 +15,7 @@ public:
 
     EntityTypeId GetTypeId();
 
-    virtual Entity* Create()=0;
+    virtual Entity* Create(int entityId)=0;
     virtual size_t GetSerializedSize(Entity* entity) const=0;
     virtual size_t Serialize(const Entity* entity, void *buffer) const=0;
     virtual size_t Deserialize(Entity* entity, const void* buffer)=0;
@@ -30,7 +23,6 @@ public:
 protected:
 
     EntityTypeId    m_typeId;
-    const char*     m_typeName;
 
 };
 
@@ -39,10 +31,10 @@ class StructEntityType : public EntityType
 {
 
 public:
-    
-    StructEntityType(EntityTypeId typeId, const char* typeName);
 
-    virtual Entity* Create();
+    StructEntityType();
+
+    virtual Entity* Create(int entityId);
     virtual size_t GetSerializedSize(Entity* entity) const;
     virtual size_t Serialize(const Entity* entity, void *buffer) const;
     virtual size_t Deserialize(Entity* entity, const void* buffer);
@@ -51,17 +43,15 @@ public:
 };
 
 template<class T>
-StructEntityType<T>::StructEntityType(EntityTypeId typeId, const char* typeName)
+StructEntityType<T>::StructEntityType()
 {
-    m_typeId = typeId;
-    m_typeName = typeName;
+    m_typeId = EntityTypeId(T::TypeId);
 }
 
 template<class T>
-Entity* StructEntityType<T>::Create()
+Entity* StructEntityType<T>::Create(int entityId)
 {
-    T* entity = new T();
-    assert(entity->GetTypeId() == m_typeId);
+    T* entity = Entity::CreateEntity<T>(entityId, m_typeId);
     return entity;
 }
 
@@ -84,10 +74,6 @@ size_t StructEntityType<T>::Deserialize(Entity* entity, const void* buffer)
     memcpy(entity, buffer, sizeof(T));
     return sizeof(T);
 }
-
-
-typedef std::vector<EntityType*> EntityTypeList;
-void InitializeEntityTypes(EntityTypeList& entityTypes);
 
 #endif
 

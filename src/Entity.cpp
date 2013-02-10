@@ -1,20 +1,20 @@
 #include "Entity.h"
 
-Entity::Entity(EntityTypeId typeId)
+Entity::Entity()
 {
     m_id = -1;
     m_ownerId = -1;
-    m_typeId = typeId;
-}
-
-void Entity::SetId(int id)
-{
-    m_id = id;
+    m_typeId = EntityTypeId_Invalid;
 }
 
 int Entity::GetId() const
 {
     return m_id;
+}
+
+EntityTypeId Entity::GetTypeId() const
+{
+    return m_typeId;
 }
 
 void Entity::SetOwnerId(int clientId)
@@ -25,9 +25,4 @@ void Entity::SetOwnerId(int clientId)
 int Entity::GetOwnerId() const
 {
     return m_ownerId;
-}
-
-EntityTypeId Entity::GetTypeId() const
-{
-    return m_typeId;
 }

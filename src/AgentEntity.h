@@ -5,7 +5,10 @@
 
 class AgentEntity : public Entity
 {
+
 public:
+
+    enum { TypeId = EntityTypeId_Agent };
 
     AgentEntity();
     

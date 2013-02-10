@@ -22,20 +22,17 @@ Server::Client::Client(int id, Server& server)
     const int numAgents     = 3;
     const int numSafeHouses = 3;
 
-    PlayerEntity* player = new PlayerEntity();
-    m_player = player;
+    m_player = m_state->CreateEntity<PlayerEntity>();
     sprintf(m_player->m_name, "Mr. %c", 'Q' + (id % 10));
-    m_state->AddEntity(player);
+    m_player->m_clientId = id;
 
     for (int i = 0; i < numAgents; ++i)
     {
-        AgentEntity* agent = new AgentEntity();
+        AgentEntity* agent = m_state->CreateEntity<AgentEntity>(m_id);
+        m_agents.push_back(agent);
+
         int stop = static_cast<int>(m_random.Generate(0, m_map->GetNumStops() - 1));
         agent->m_currentStop = stop;
-        agent->SetOwnerId(m_id);
-
-        m_agents.push_back(agent);
-        m_state->AddEntity(agent);
     }
 
     for (int i = 0; i < numSafeHouses; ++i)
@@ -57,11 +54,8 @@ Server::Client::Client(int id, Server& server)
         
         assert(stopIndex != -1);
 
-        BuildingEntity* building = new BuildingEntity();
+        BuildingEntity* building = m_state->CreateEntity<BuildingEntity>(m_id);
         building->m_stop = stopIndex;
-        building->SetOwnerId(m_id);
-
-        m_state->AddEntity(building);
     }
     
 }
@@ -73,6 +67,11 @@ int Server::Client::GetId() const
 
 void Server::Client::Update()
 {
+
+    if (m_player->m_eliminated)
+    {
+        return;
+    }
 
     // Update lost agents
     for (AgentList::iterator i = m_agents.begin(); i != m_agents.end();)
@@ -101,6 +100,12 @@ void Server::Client::Update()
 
     }
 
+    // Check for end game
+    if (m_agents.size() == 0)
+    {
+        m_player->m_eliminated = true;
+    }
+
 }
 
 void Server::Client::OnOrder(const Protocol::OrderPacket& order)
@@ -108,7 +113,7 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
     
     AgentEntity* agent = FindAgent(order.agentId);
 
-    if (agent == NULL)
+    if (agent == NULL || m_player->m_eliminated)
     {
         return;
     }
@@ -165,7 +170,7 @@ AgentEntity* Server::Client::FindAgent(int agentId)
 
 Server::Server() 
     : m_host(1), 
-      m_globalState(&m_entityTypes)
+      m_globalState(&m_typeRegistry)
 {
     m_host.Listen(12345);
 
@@ -175,8 +180,6 @@ Server::Server()
     m_gridSpacing       = 150;
     m_xMapSize          = m_gridSpacing * 9;
     m_yMapSize          = m_gridSpacing * 6;
-
-    InitializeEntityTypes(m_entityTypes);
 
     m_map.Generate(m_xMapSize, m_yMapSize, m_mapSeed);
 
@@ -225,13 +228,14 @@ void Server::OnConnect(int peerId)
     m_clientMap[peerId] = new Client(peerId, *this);
 
     Protocol::InitializeGamePacket initializeGame;
-    initializeGame.packetType = Protocol::PacketType_InitializeGame;
-    initializeGame.mapSeed = m_mapSeed;
-    initializeGame.gridSpacing = m_gridSpacing;
-    initializeGame.xMapSize = m_xMapSize;
-    initializeGame.yMapSize = m_yMapSize;
-    initializeGame.time = m_time;
-
+    initializeGame.time         = m_time;
+    initializeGame.clientId     = peerId;
+    initializeGame.packetType   = Protocol::PacketType_InitializeGame;
+    initializeGame.mapSeed      = m_mapSeed;
+    initializeGame.gridSpacing  = m_gridSpacing;
+    initializeGame.xMapSize     = m_xMapSize;
+    initializeGame.yMapSize     = m_yMapSize;
+    
     m_host.SendPacket(peerId, 0, &initializeGame, sizeof(Protocol::InitializeGamePacket));
 }
 
