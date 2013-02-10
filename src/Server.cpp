@@ -133,10 +133,9 @@ void Server::Client::CheckForStakeout(AgentEntity* agent)
         }
     }
 
-    // If we were spotted and we're hacking the police, we'll see it as a crime.
-    if (spotted && m_player->m_hackingPolice)
+    if (spotted)
     {
-        m_server->SendNotification(m_id, Protocol::Notification_CrimeDetected, agent->GetId(), agent->m_currentStop, -1);
+        NotifyCrime(agent->GetId(), agent->m_currentStop);
     }
 
 }
@@ -206,20 +205,57 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
         break;
 
     case Protocol::Order_Stakeout:
+        if (agent->m_state == AgentEntity::State_Stakeout)
         {
-            if (agent->m_state == AgentEntity::State_Stakeout)
-            {
-                agent->m_state = AgentEntity::State_Idle;
-            }
-            else
-            {
-                agent->m_state = AgentEntity::State_Stakeout;
-            }   
+            agent->m_state = AgentEntity::State_Idle;
         }
+        else
+        {
+            agent->m_state = AgentEntity::State_Stakeout;
+        }   
+        break;
+
+    case Protocol::Order_Infiltrate:
+        Infiltrate(agent);
         break;
 
     }
     
+}
+
+void Server::Client::Infiltrate(AgentEntity* agent)
+{
+    // Check if there is a safe hosue at this stop.
+
+    bool infiltrated = false;
+    int stop = agent->m_currentStop;
+    int index = 0;
+    const BuildingEntity* structure;
+    while (m_state->GetNextEntityWithType(index, structure))
+    {
+        if (structure->m_stop == stop)
+        {
+            int id = agent->GetOwnerId();
+            m_server->SendNotification(id, Protocol::Notification_HouseDestroyed, agent->GetId(), agent->m_currentStop, -1);
+            m_server->SendNotification(structure->GetOwnerId(), Protocol::Notification_HouseDestroyed, agent->GetId(), agent->m_currentStop, -1);
+            infiltrated = true;
+            break;
+        }
+    }
+
+    if (!infiltrated)
+    {
+        m_server->NotifyCrime(agent->GetId(), agent->m_currentStop);
+    }
+
+}
+
+void Server::Client::NotifyCrime(int agentId, int stop)
+{
+    if (m_player->m_hackingPolice)
+    {
+        m_server->SendNotification(m_id, Protocol::Notification_CrimeDetected, agentId, stop, -1);
+    }
 }
 
 void Server::Client::UpdateHackingStatus()
@@ -352,6 +388,15 @@ void Server::OnDisconnect(int peerId)
     {
         delete iter->second;
         m_clientMap.erase(iter);
+    }
+}
+
+void Server::NotifyCrime(int agentId, int stop)
+{
+    for (ClientMap::iterator i = m_clientMap.begin(); i != m_clientMap.end(); ++i)
+    {
+        Client* client = i->second;
+        client->NotifyCrime(agentId, stop);
     }
 }
 

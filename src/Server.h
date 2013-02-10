@@ -35,6 +35,8 @@ public:
 
         void UpdateHackingStatus();
         void CheckForStakeout(AgentEntity* agent);
+        void Infiltrate(AgentEntity* agent);
+        void NotifyCrime(int agentId, int stop);
 
     private:
 
@@ -70,6 +72,8 @@ public:
     Map& GetMap();
 
     void SendNotification(int peerId, Protocol::Notification notification, int agentId, int stop, int rail);
+
+    void NotifyCrime(int agentId, int stop);
 
 private:
     

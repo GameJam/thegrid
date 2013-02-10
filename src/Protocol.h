@@ -33,7 +33,7 @@ enum Notification
     Notification_CrimeDetected,
     Notification_LineUsed,
     Notification_AgentSpotted,
-    Ntoification_HouseDestroyed,
+    Notification_HouseDestroyed,
 };
 
 struct InitializeGamePacket
