@@ -119,6 +119,7 @@ void ClientGame::LoadResources()
     TextureLoad load[] = 
         { 
             { &m_agentTexture,                          "assets/agent.png"                          },
+            { &m_agentHackingTexture,                   "assets/agent_hacking.png"                  },
             { &m_agentIntelTexture,                     "assets/agent_intel.png"                    },
             { &m_agentStakeoutTexture,                  "assets/agent_stakeout.png"                 },
             { &m_intelTexture,                          "assets/intel.png"                          },
@@ -362,7 +363,15 @@ void ClientGame::Render()
             {
                 const AgentEntity* agent = static_cast<const AgentEntity*>(entity);
                 Vec2 position = GetAgentPosition(agent);
-                if (agent->m_hasIntel)
+                if (agent->m_state == AgentEntity::State_Hacking)
+                {
+                    Render_DrawSprite(m_agentHackingTexture, static_cast<int>(position.x) - m_agentHackingTexture.xSize / 2, static_cast<int>(position.y) - m_agentHackingTexture.ySize / 2);
+                }
+                else if (agent->m_state == AgentEntity::State_Stakeout)
+                {
+                    Render_DrawSprite(m_agentStakeoutTexture, static_cast<int>(position.x) - m_agentStakeoutTexture.xSize / 2, static_cast<int>(position.y) - m_agentStakeoutTexture.ySize / 2);
+                }
+                else if (agent->m_hasIntel)
                 {
                     Render_DrawSprite(m_agentIntelTexture, static_cast<int>(position.x) - m_agentIntelTexture.xSize / 2, static_cast<int>(position.y) - m_agentIntelTexture.ySize / 2);
                 }

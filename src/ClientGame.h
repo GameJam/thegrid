@@ -152,6 +152,7 @@ private:
     int                 m_stateY;
 
     Texture             m_agentTexture;
+    Texture             m_agentHackingTexture;
     Texture             m_agentStakeoutTexture;
     Texture             m_agentIntelTexture;
     Texture             m_intelTexture;
