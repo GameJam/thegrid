@@ -226,7 +226,10 @@ void ClientGame::Render() const
         const Stop& stop1 = m_map.GetStop(rail.stop1);
         const Stop& stop2 = m_map.GetStop(rail.stop2);
         assert(rail.line >= 0);
-        glColor( lineColor[rail.line % numLines] );
+        unsigned long color = lineColor[rail.line % numLines];
+        // Draw the rails partially transparent to make the buldings more readable.
+        color = (color & 0x00FFFFFF) | 0x90000000;
+        glColor( color );
         glVertex(stop1.point);
         glVertex(stop2.point);
     }
