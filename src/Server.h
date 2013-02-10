@@ -56,6 +56,14 @@ public:
 
     };
 
+    struct Intel
+    {
+        int                 m_stop;
+        int                 m_owner;
+        int                 m_agentId;
+        bool                m_inHouse;
+    };
+
     typedef std::vector<Client*> ClientList;
 
     Server();
@@ -82,9 +90,13 @@ private:
     
     Client* FindClient(int peerId);
     void SendClientState(int peerId);
+    int GetNumIntelsAtStop(int stop);
+    int PingIntel(int clientId, int lastPinged);
 
     typedef stdext::hash_map<int, Client*> ClientMap;
+    typedef std::vector<Intel> IntelList;
 
+    Random              m_random;
     LanBroadcast        m_lanBroadcast;
     Host                m_host;
     ClientMap           m_clientMap;
@@ -94,6 +106,7 @@ private:
     float               m_time;
     float               m_timeSinceUpdate;
     float               m_timeSinceBroadcast;
+    IntelList           m_intelList;
 
     int                 m_mapSeed;
     int                 m_gridSpacing;

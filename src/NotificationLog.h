@@ -50,6 +50,7 @@ private:
     Texture                 m_notificationAgentSpotted;
     Texture                 m_notificationCrime;
     Texture                 m_notificationBuildingDestroyed;
+    Texture                 m_notificationIntelDetected;
 
     HSAMPLE                 m_soundCrime;
     HSAMPLE                 m_soundSpotted;
