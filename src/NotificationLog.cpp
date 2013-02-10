@@ -44,7 +44,11 @@ NotificationLog::~NotificationLog()
 
 void NotificationLog::Draw(int xSize, int ySize)
 {
-    const size_t firstEntry = Min<size_t>(0, m_entries.size() - kNumEntries);
+    size_t firstEntry = 0;
+    if (m_entries.size() > kNumEntries)
+    {
+        firstEntry = m_entries.size() - kNumEntries;
+    }
 
     const int fontHeight = Font_GetTextHeight(*m_font);
     const int rowSpacing = 8;

@@ -78,7 +78,7 @@ struct NotificationPacket
 
     int             agentId;
     int             stop;
-    int             rail;
+    int             line;
 };
 
 }

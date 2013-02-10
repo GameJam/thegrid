@@ -48,6 +48,8 @@ public:
 
     int GetStopForPoint(const Vec2& point);
 
+    int GetLineBetween(int stopA, int stopB);
+
 private:
 
     int  AddStop(const Vec2& point, int line, bool terminal = false);

@@ -71,7 +71,8 @@ public:
     EntityState& GetState();
     Map& GetMap();
 
-    void SendNotification(int peerId, Protocol::Notification notification, int agentId, int stop, int rail);
+    void SendNotification(int peerId, Protocol::Notification notification, int agentId, int stop, int line);
+    void OnLineUsed(int clientId, int lineId);
 
     void NotifyCrime(int agentId, int stop);
 

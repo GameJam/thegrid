@@ -161,6 +161,10 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
                 agent->m_departureTime = m_state->GetTime();
                 agent->m_arrivalTime = m_state->GetTime() + 1;
                 agent->m_state = AgentEntity::State_Idle;
+
+                int line = m_map->GetLineBetween(agent->m_currentStop, agent->m_targetStop);
+                assert(line != -1);
+                m_server->OnLineUsed(m_id, line);
             }
         }
         break;
@@ -456,7 +460,7 @@ Map& Server::GetMap()
     return m_map;
 }
 
-void Server::SendNotification(int peerId, Protocol::Notification notification, int agentId, int stop, int rail)
+void Server::SendNotification(int peerId, Protocol::Notification notification, int agentId, int stop, int line)
 {
 
     Protocol::NotificationPacket packet;
@@ -464,9 +468,22 @@ void Server::SendNotification(int peerId, Protocol::Notification notification, i
     packet.notification = notification;
     packet.agentId = agentId;
     packet.stop = stop;
-    packet.rail = rail;
+    packet.line = line;
     m_host.SendPacket(peerId, 0, &packet, sizeof(packet));
 
+}
+
+void Server::OnLineUsed(int clientId, int lineId)
+{
+    int index = 0;
+    const PlayerEntity* player;
+    while (m_globalState.GetNextEntityWithType(index, player))
+    {
+        if (player->m_clientId != clientId && player->m_hackingBank)
+        {
+            SendNotification(player->m_clientId, Protocol::Notification_LineUsed, -1, -1, lineId);
+        }
+    }
 }
 
 Server::Client* Server::FindClient(int peerId)

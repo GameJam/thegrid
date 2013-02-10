@@ -351,3 +351,17 @@ int Map::GetStopForPoint(const Vec2& point)
     }
     return -1;
 }
+
+int Map::GetLineBetween(int stopA, int stopB)
+{
+    for (int i = 0 ; i < m_numRails; ++i)
+    {
+        if ((m_rail[i].stop1 == stopA && m_rail[i].stop2 == stopB) ||
+            (m_rail[i].stop1 == stopB && m_rail[i].stop2 == stopA))
+        {
+            return m_rail[i].line;
+        }
+    }
+
+    return -1;
+}
