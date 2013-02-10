@@ -70,10 +70,10 @@ void EntityState::Serialize(int clientId, void* buffer, size_t size) const
 {
 
     SerializeHeader* header = static_cast<SerializeHeader*>(buffer);
-    header->numEntities = m_entities.size();
     header->time = m_time;
 
     char* entityBuffer = reinterpret_cast<char*>(header + 1);
+    size_t numEntities = 0;
     for (size_t i = 0; i < m_entities.size(); ++i)
     {
         Entity* entity = m_entities[i];
@@ -87,9 +87,12 @@ void EntityState::Serialize(int clientId, void* buffer, size_t size) const
 
             EntityType* entityType = (*m_entityTypeList)[typeId];
             entityBuffer += entityType->Serialize(m_entities[i], entityBuffer);
+
+            ++numEntities;
         }
     }
 
+    header->numEntities = numEntities;
     assert(entityBuffer == static_cast<char*>(buffer) + size);
 
 }
