@@ -7,6 +7,7 @@
 #include "ClientWorldState.h"
 #include "Entity.h"
 #include "EntityType.h"
+#include "Map.h"
 
 #include <hash_map>
 
@@ -55,12 +56,15 @@ private:
     Client* FindClient(int peerId);
 
     typedef stdext::hash_map<int, Client*> ClientMap;
-
     Host            m_host;
     ClientMap       m_clientMap;
     EntityTypeList  m_entityTypes;
-    
+    Map             m_map;
+
     int             m_mapSeed;
+    int             m_gridSpacing;
+    int             m_xMapSize;
+    int             m_yMapSize;
 
 };
 

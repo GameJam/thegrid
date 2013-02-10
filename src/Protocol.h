@@ -13,8 +13,11 @@ enum PacketType
 
 struct InitializeGamePacket
 {
-    char packetType;
-    int mapSeed;
+    char        packetType;
+    int         mapSeed;
+    int         gridSpacing;
+    int         xMapSize;
+    int         yMapSize;
 };
 
 struct OrderPacket
