@@ -10,6 +10,7 @@ enum EntityTypeId
     EntityTypeId_Agent,
     EntityTypeId_Building,
     EntityTypeId_Player,
+    EntityTypeId_Intel,
     EntityTypeId_Count,
     EntityTypeId_Invalid = -1
 };

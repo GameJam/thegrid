@@ -19,6 +19,8 @@ public:
     bool    m_hackingBank;
     bool    m_hackingTower;
     bool    m_hackingPolice;
+    float   m_nextIntelPing;
+    int     m_lastIntelFound;
     int     m_numSafeHouses;
     int     m_numAgents;
 

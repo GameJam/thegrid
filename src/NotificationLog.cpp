@@ -142,6 +142,7 @@ void NotificationLog::LoadResources()
         { &m_notificationAgentSpotted,              "assets/notification_agent_spotted.png"     },
         { &m_notificationCrime,                     "assets/notification_crime.png"             },
         { &m_notificationBuildingDestroyed,         "assets/notification_building_destroyed.png" },
+        { &m_notificationIntelDetected,             "assets/notification_intelDetected.png"     },
     };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -214,6 +215,12 @@ void NotificationLog::VisualizeNotification(const Protocol::NotificationPacket& 
             const Stop& stop = m_map->GetStop(packet.stop);        
             AddNotificationParticle(&m_notificationBuildingDestroyed, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
             PlaySample(m_soundDestroyed);
+        }
+        break;
+    case Protocol::Notification_IntelDetected:
+        {
+            const Stop& stop = m_map->GetStop(packet.stop);        
+            AddNotificationParticle(&m_notificationIntelDetected, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
         }
         break;
     }
