@@ -571,6 +571,7 @@ void ClientGame::Update(float deltaTime)
 {
     m_time += deltaTime;
     m_host.Service(this);
+    UpdateActiveButtons();
 }
 
 void ClientGame::OnConnect(int peerId)
@@ -656,10 +657,47 @@ void ClientGame::GetButtonRect(ButtonId buttonId, int& x, int& y, int& xSize, in
 
 void ClientGame::UpdateActiveButtons()
 {
+
     bool selection = (m_selectedAgent != -1);
+
+    StructureType structure = StructureType_None;
+
+    if (selection)
+    {
+        const Entity* entity = GetEntity(m_selectedAgent);
+        if (entity == NULL)
+        {
+            selection = false;
+        }
+        else
+        {
+            assert(entity->GetTypeId() == EntityTypeId_Agent);
+            const AgentEntity* agent = static_cast<const AgentEntity*>(entity);
+            if (agent->m_currentStop != -1)
+            {
+                structure = GetStructureAtStop(agent->m_currentStop);
+            }
+        }
+    }
+
+    bool buttonEnabled[ButtonId_NumButtons];
     for (int i = 0; i < ButtonId_NumButtons; ++i)
     {
-        m_button[i].enabled = selection;
+        buttonEnabled[i] = selection;
+    }
+
+    if (structure != StructureType_None)
+    {
+        buttonEnabled[ButtonId_Infiltrate] = false;
+    }
+    else
+    {
+        buttonEnabled[ButtonId_Hack] = false;
+    }
+
+    for (int i = 0; i < ButtonId_NumButtons; ++i)
+    {
+        m_button[i].enabled = buttonEnabled[i];
         // If the active button is going away, remove its current state.
         if (m_activeButton == i)
         {
@@ -704,6 +742,18 @@ void ClientGame::PlaySample(HSAMPLE sample)
 
 StructureType ClientGame::GetStructureAtStop(int stop) const
 {
-    // TODO: go through entities?
     return m_map.GetStop(stop).structureType;   
+}
+
+const Entity* ClientGame::GetEntity(int id) const
+{
+    for (int i = 0; i < m_state.GetNumEntities(); ++i)
+    {
+        const Entity* entity = m_state.GetEntity(i);
+        if (entity->GetId() == id)
+        {
+            return entity;
+        }
+    }
+    return NULL;
 }

@@ -94,6 +94,8 @@ private:
 
     StructureType GetStructureAtStop(int stop) const;
 
+    const Entity* GetEntity(int id) const;
+
 private:
   
     float       m_time;
