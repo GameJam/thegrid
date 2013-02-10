@@ -42,6 +42,7 @@ public:
         typedef std::vector<AgentEntity*> AgentList;
 
         int                 m_id;
+        Server*             m_server;
         Map*                m_map;
         EntityState*        m_state;
         Random              m_random;
@@ -66,6 +67,8 @@ public:
 
     EntityState& GetState();
     Map& GetMap();
+
+    void SendNotification(int peerId, Protocol::Notification notification, int agentId, int stop, int rail);
 
 private:
     
