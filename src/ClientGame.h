@@ -11,6 +11,7 @@
 #include "EntityType.h"
 #include "EntityTypeRegistry.h"
 #include "LanListener.h"
+#include "Particles.h"
 
 #include <bass.h>
 
@@ -23,7 +24,7 @@ class ClientGame : Host::Handler
 
 public:
 
-    ClientGame(int xSize, int ySize);
+    ClientGame(int xSize, int ySize, bool playMusic);
     ~ClientGame();
 
     void LoadResources();
@@ -90,6 +91,8 @@ private:
 
     void OnInitializeGame(Protocol::InitializeGamePacket& packet);
 
+    void OnNotification(Protocol::NotificationPacket& packet);
+
     void GetButtonRect(ButtonId buttonId, int& x, int& y, int& xSize, int& ySize) const;
 
     void UpdateActiveButtons();
@@ -118,6 +121,9 @@ private:
     bool DoButton(const char* text, int x, int y, int xSize, int ySize) const;
 
 private:
+
+    void AddNotificationParticle(Texture* texture, int x, int y);
+
 
     static const Protocol::Order kButtonToOrder[ButtonId_NumButtons];
 
@@ -191,6 +197,9 @@ private:
     int                 m_maxPlayersInGame;
     float               m_gameOverTime;
     bool                m_isWinner;
+
+    Particles           m_screenParticles;
+    Particles           m_mapParticles;
 
 };
 

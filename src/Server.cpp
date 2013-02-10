@@ -15,6 +15,7 @@ Server::Client::Client(int id, Server& server)
 {
 
     m_id = id;
+    m_server = &server;
     m_map = &server.GetMap();
     m_state = &server.GetState();
 
@@ -146,8 +147,11 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
                 if (capturedAgent->m_currentStop == agent->m_currentStop)
                 {
                     // Capture this agent!
-                    entity->SetOwnerId(m_id);
+                    int oldOwnerId = capturedAgent->GetOwnerId();
+                    capturedAgent->SetOwnerId(m_id);
                     m_agents.push_back(capturedAgent);
+                    m_server->SendNotification(m_id, Protocol::Notification_AgentCaptured, capturedAgent->GetId(), capturedAgent->m_currentStop, -1);
+                    m_server->SendNotification(oldOwnerId, Protocol::Notification_AgentLost, -1, capturedAgent->m_currentStop, -1);
                     break;
                 }
             }
@@ -375,6 +379,19 @@ EntityState& Server::GetState()
 Map& Server::GetMap()
 {
     return m_map;
+}
+
+void Server::SendNotification(int peerId, Protocol::Notification notification, int agentId, int stop, int rail)
+{
+
+    Protocol::NotificationPacket packet;
+    packet.packetType = Protocol::PacketType_Notification;
+    packet.notification = notification;
+    packet.agentId = agentId;
+    packet.stop = stop;
+    packet.rail = rail;
+    m_host.SendPacket(peerId, 0, &packet, sizeof(packet));
+
 }
 
 Server::Client* Server::FindClient(int peerId)

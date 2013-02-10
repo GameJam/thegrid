@@ -181,7 +181,14 @@ int main(int argc, char* argv[])
         hostName = GetArgument(arguments, "connect");
     }
 
-    ClientGame* game = new ClientGame(xSize, ySize);
+    const char* music = GetArgument(arguments, "music");
+    if (music == NULL)
+    {
+        music = "on";
+    }
+
+
+    ClientGame* game = new ClientGame(xSize, ySize, strcmp(music, "on") == 0);
 
     game->LoadResources();
     game->Connect(hostName, 12345);

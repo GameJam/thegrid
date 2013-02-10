@@ -10,7 +10,8 @@ enum PacketType
 {
     PacketType_InitializeGame,
     PacketType_Order,
-    PacketType_State
+    PacketType_State,
+    PacketType_Notification,
 };
 
 enum Order
@@ -21,6 +22,18 @@ enum Order
     Order_Stakeout,
     Order_Hack,
     Order_Intel
+};
+
+enum Notification
+{
+    Notification_AgentCaptured,
+    Notification_AgentLost,
+    Notification_IntelDetected,
+    Notification_IntelCaptured,
+    Notification_CrimeDetected,
+    Notification_LineUsed,
+    Notification_AgentSpotted,
+    Ntoification_HouseDestroyed,
 };
 
 struct InitializeGamePacket
@@ -55,7 +68,17 @@ struct StatePacketHeader
 struct StatePacket
 {
     StatePacketHeader header;
-    char data[1];
+    char        data[1];
+};
+
+struct NotificationPacket
+{
+    char            packetType;
+    Notification    notification;
+
+    int             agentId;
+    int             stop;
+    int             rail;
 };
 
 }

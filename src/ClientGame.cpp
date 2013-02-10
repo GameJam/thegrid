@@ -12,6 +12,7 @@
 #include <assert.h>
 
 const int yStatusBarSize    = 140;
+const float kPi = 3.14159265359f;
 
 const Protocol::Order ClientGame::kButtonToOrder[ButtonId_NumButtons] = 
 {
@@ -30,6 +31,24 @@ static float EaseInOutQuad(float t, float b, float c, float d)
     return -c/2 * (t*(t-2) - 1) + b;
 };
 
+static bool NotificationBounceFunc(Particle& particle, float deltaTime)
+{
+
+    const float kDuration = 1.0;
+
+    particle.time += deltaTime;
+    if (particle.time > kDuration)
+    {
+        return false;
+    }
+
+    float scale = sinf(kPi * particle.time / kDuration);
+    particle.scale = Vec2(scale, scale);
+    return true;
+
+}
+
+
 static void DrawCircle(const Vec2& point, float radius)
 {
     const int numSides = 16;
@@ -43,7 +62,7 @@ static void DrawCircle(const Vec2& point, float radius)
     glEnd();
 }
 
-ClientGame::ClientGame(int xSize, int ySize) 
+ClientGame::ClientGame(int xSize, int ySize, bool playMusic) 
     : m_host(1),
       m_state(&m_typeRegistry)
 {
@@ -76,7 +95,10 @@ ClientGame::ClientGame(int xSize, int ySize)
     UpdateActiveButtons();
 
     m_music = BASS_StreamCreateFile(FALSE, "assets/get_a_groove.mp3", 0, 0, BASS_SAMPLE_LOOP);
-    BASS_ChannelPlay(m_music, TRUE);
+    if (playMusic)
+    {
+        BASS_ChannelPlay(m_music, TRUE);
+    }    
 
     m_lanListener.Initialize(Protocol::listenPort);
 
@@ -374,6 +396,8 @@ void ClientGame::Render()
         }
     }
 
+    m_mapParticles.Draw();
+
     // Draw the UI.
 
     glMatrixMode(GL_PROJECTION);
@@ -514,6 +538,8 @@ void ClientGame::Render()
                 20 + 130 * i);
         }
     }
+
+    m_screenParticles.Draw();
 
 }
 
@@ -784,7 +810,7 @@ void ClientGame::HostGame()
 
 void ClientGame::Update(float deltaTime)
 {
-        
+
     if (m_server)
     {
         m_server->Update(deltaTime);
@@ -795,6 +821,9 @@ void ClientGame::Update(float deltaTime)
         m_lanListener.Service();
         return;
     }
+
+    m_screenParticles.Update(deltaTime);
+    m_mapParticles.Update(deltaTime);
 
     m_time += deltaTime;
     m_host.Service(this);
@@ -868,6 +897,13 @@ void ClientGame::OnPacket(int peerId, int channel, void* data, size_t size)
             }
             break;
 
+        case Protocol::PacketType_Notification:
+            {
+                Protocol::NotificationPacket* packet = static_cast<Protocol::NotificationPacket*>(data);
+                OnNotification(*packet);
+            }
+            break;
+
         default:
             LogDebug("Unrecognized packet: %i", packetType);
         }        
@@ -900,6 +936,19 @@ void ClientGame::OnInitializeGame(Protocol::InitializeGamePacket& packet)
     CenterMap(m_xMapSize / 2, m_yMapSize / 2);
 
     m_gameState = GameState_Playing;
+}
+
+void ClientGame::OnNotification(Protocol::NotificationPacket& packet)
+{
+    LogDebug("Notification: %d", packet.notification);
+
+
+
+    if (packet.notification == Protocol::Notification_AgentCaptured)
+    {
+        const Stop& stop = m_map.GetStop(packet.stop);        
+        AddNotificationParticle(&m_playerPortraitTexture, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+    }
 }
 
 void ClientGame::GetButtonRect(ButtonId buttonId, int& x, int& y, int& xSize, int& ySize) const
@@ -1150,4 +1199,14 @@ bool ClientGame::DoButton(const char* text, int x, int y, int xSize, int ySize) 
     Font_EndDrawing();
 
     return true;
+}
+
+void ClientGame::AddNotificationParticle(Texture* texture, int x, int y)
+{
+    Particle* p = m_mapParticles.Add();
+    p->texture = texture;
+    p->position = Vec2(x, y);
+    p->scale = Vec2(0, 0);
+    p->rotation = 0;
+    p->updateFunction = NotificationBounceFunc;
 }
