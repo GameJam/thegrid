@@ -16,7 +16,10 @@ Server::Client::Client(int id, Server& server)
 
     m_random.Seed(SDL_GetTicks());
 
-    for (int i = 0; i < 3; ++i)
+    const int numAgents = 3;
+    const int numSafeHouses = 3;
+
+    for (int i = 0; i < numAgents; ++i)
     {
         AgentEntity* agent = new AgentEntity();
         int stop = static_cast<int>(m_random.Generate(0, m_map->GetNumStops() - 1));
@@ -27,6 +30,32 @@ Server::Client::Client(int id, Server& server)
         m_state->AddEntity(agent);
     }
 
+    for (int i = 0; i < numSafeHouses; ++i)
+    {
+
+        int offset = m_random.Generate(0, m_map->GetNumStops() - 1);
+        int stopIndex = -1;
+
+        // Note, can place two player's safe houses at the same location, but should
+        // be ok for gameplay.
+        for (int j = 0; j < m_map->GetNumStops(); ++j)
+        {
+            stopIndex = (j + offset) % m_map->GetNumStops();
+            if (m_map->GetStop(stopIndex).structureType  == StructureType_None)
+            {
+                break;
+            }
+        }
+        
+        assert(stopIndex != -1);
+
+        BuildingEntity* building = new BuildingEntity();
+        building->m_stop = stopIndex;
+        building->SetOwnerId(m_id);
+
+        m_state->AddEntity(building);
+    }
+    
 }
 
 int Server::Client::GetId() const
@@ -112,20 +141,6 @@ Server::Server()
     InitializeEntityTypes(m_entityTypes);
 
     m_map.Generate(m_xMapSize, m_yMapSize, m_mapSeed);
-
-    /*
-    for (int i = 0; i < m_map.GetNumStops(); ++i)
-    {
-        const Stop& stop = m_map.GetStop(i);
-        if (stop.structureType != StructureType_None)
-        {
-            BuildingEntity* building = new BuildingEntity();
-            building->m_stop = i;
-            building->m_type = stop.structureType;
-            m_globalState.AddEntity(building);
-        }
-    }
-    */
 
 }
 

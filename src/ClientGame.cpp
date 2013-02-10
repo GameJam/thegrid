@@ -233,6 +233,20 @@ void ClientGame::Render() const
             Render_DrawSprite(*texture, static_cast<int>(position.x) - texture->xSize / 2, static_cast<int>(position.y) - texture->ySize / 2);
         }
     }
+    for (int i = 0; i < m_state.GetNumEntities(); ++i)
+    {
+        const Entity* entity = m_state.GetEntity(i);
+        switch (entity->GetTypeId())
+        {
+        case EntityTypeId_Building:
+            {
+                const BuildingEntity* building = static_cast<const BuildingEntity*>(entity);
+                Vec2 position = m_map.GetStop(building->m_stop).point;
+                Render_DrawSprite(m_buildingHouseTexture, static_cast<int>(position.x) - m_buildingHouseTexture.xSize / 2, static_cast<int>(position.y) - m_buildingHouseTexture.ySize / 2);
+            }
+            break;
+        }
+    }
     glDisable(GL_TEXTURE_2D);
 
     // Rails.
@@ -307,7 +321,6 @@ void ClientGame::Render() const
     for (int i = 0; i < m_state.GetNumEntities(); ++i)
     {
         const Entity* entity = m_state.GetEntity(i);
-        
         switch (entity->GetTypeId())
         {
         case EntityTypeId_Agent:
@@ -325,7 +338,6 @@ void ClientGame::Render() const
             }
             break;
         }
-        
     }
 
     // Draw the UI.

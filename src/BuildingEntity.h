@@ -5,6 +5,7 @@
 #include "Vec2.h"
 #include "Map.h"
 
+// Safe house
 class BuildingEntity : public Entity
 {
 public:
@@ -12,7 +13,6 @@ public:
     BuildingEntity();
     
     int             m_stop;
-    StructureType   m_type;
 
 };
 
