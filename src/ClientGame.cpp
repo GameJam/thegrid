@@ -604,7 +604,7 @@ void ClientGame::OnMouseDown(int x, int y, int button)
 
     if (m_gameState == GameState_MainMenu)
     {
-
+        return;
     }
     
     if (m_gameState != GameState_Playing)
@@ -612,7 +612,12 @@ void ClientGame::OnMouseDown(int x, int y, int button)
         return;
     }
 
-    m_notificationLog.OnMouseDown(x, y, button);
+    Vec2 location;
+    if (m_notificationLog.OnMouseDown(x, y, button, location))
+    {
+        CenterMap(location.x, location.y);
+        return;
+    }
 
     if (button == 1)
     {

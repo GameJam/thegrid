@@ -19,7 +19,7 @@ public:
     ~NotificationLog();
 
     void Draw();
-    void OnMouseDown(int x, int y, int button);
+    bool OnMouseDown(int x, int y, int button, Vec2& location);
     void OnMouseUp(int x, int y, int button);
     void OnMouseMove(int x, int y);
     void LoadResources();
@@ -30,7 +30,7 @@ private:
 
     void PlaySample(HSAMPLE sample);
 
-    void VisualizeNotification(const Protocol::NotificationPacket& packet);   
+    bool VisualizeNotification(const Protocol::NotificationPacket& packet, Vec2& location);   
     void AddNotificationParticle(Texture* texture, int x, int y);
     int GetEntryUnderCursor(int x, int y);
 
