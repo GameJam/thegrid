@@ -47,7 +47,7 @@ static void DrawCircle(const Vec2& point, float radius)
 ClientGame::ClientGame(int xSize, int ySize, bool playMusic) 
     : m_host(1),
       m_state(&m_typeRegistry),
-      m_notificationLog(&m_map, &m_mapParticles, &m_font)
+      m_notificationLog(&m_map, &m_mapParticles, &m_font, xSize, ySize)
 {
 
     m_server        = NULL;
@@ -438,7 +438,7 @@ void ClientGame::Render()
         }
     }
 
-    m_notificationLog.Draw(m_xSize, m_ySize);
+    m_notificationLog.Draw();
 
     const int maxPlayers = 32;
     const PlayerEntity* player[maxPlayers] = { NULL };
@@ -584,6 +584,8 @@ void ClientGame::OnMouseDown(int x, int y, int button)
         return;
     }
 
+    m_notificationLog.OnMouseDown(x, y, button);
+
     if (button == 1)
     {
 
@@ -722,6 +724,8 @@ void ClientGame::OnMouseUp(int x, int y, int button)
         return;
     }
 
+    m_notificationLog.OnMouseUp(x, y, button);
+
     if (button == 1)
     {
         if (m_mapState == State_Button)
@@ -754,6 +758,8 @@ void ClientGame::OnMouseMove(int x, int y)
     {
         return;
     }
+
+    m_notificationLog.OnMouseMove(x, y);
 
     m_hoverButton = GetButtonAtPoint(x, y);
 

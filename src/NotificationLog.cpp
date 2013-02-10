@@ -7,6 +7,8 @@
 
 const float kPi = 3.14159265359f;
 
+const int kWindowWidth = 600;
+const int kWindowHeight = 140;
 const int kNumEntries = 4;
 
 const char* kNotificationText[Protocol::Notification_Count] = {
@@ -38,14 +40,22 @@ static bool NotificationBounceFunc(Particle& particle, float deltaTime)
 
 }
 
-NotificationLog::NotificationLog(Map* map, Particles* mapParticles, Font* font)
+NotificationLog::NotificationLog(Map* map, Particles* mapParticles, Font* font, int xSize, int ySize)
 {
+
+    m_activeRow = -1;
     m_map = map;
     m_mapParticles = mapParticles;
     m_font = font;
     m_soundCrime = NULL;
     m_soundSpotted = NULL;
     m_soundDestroyed = NULL;
+
+    m_windowX = xSize - kWindowWidth;
+    m_windowY = ySize - kWindowHeight;
+
+    m_firstEntry = 0;
+
 }
 
 NotificationLog::~NotificationLog()
@@ -55,28 +65,17 @@ NotificationLog::~NotificationLog()
     BASS_SampleFree(m_soundDestroyed);
 }
 
-void NotificationLog::Draw(int xSize, int ySize)
+void NotificationLog::Draw()
 {
-    size_t firstEntry = 0;
-    if (m_entries.size() > kNumEntries)
-    {
-        firstEntry = m_entries.size() - kNumEntries;
-    }
-
-    const int fontHeight = Font_GetTextHeight(*m_font);
-    const int rowSpacing = 8;
-
-    int logWidth = xSize / 2;
-
-    int rowY = ySize - (fontHeight + rowSpacing)*kNumEntries;
+    int rowY = m_windowY;
 
     Font_BeginDrawing(*m_font);
     glColor(0xff000000);
-    for (size_t i = firstEntry; i < m_entries.size(); ++i)
+    for (size_t i = m_firstEntry; i < m_entries.size(); ++i)
     {
         Protocol::Notification notification = m_entries[i].packet.notification;
         const char* text = kNotificationText[notification];
-        Font_DrawText(text, xSize - logWidth, rowY);
+        Font_DrawText(text, m_windowX, rowY);
         
         if (notification == Protocol::Notification_LineUsed)
         {
@@ -85,14 +84,29 @@ void NotificationLog::Draw(int xSize, int ySize)
             char lineBuffer[1024];
             sprintf(lineBuffer, "line %i", line + 1);
             glColor(m_map->GetLineColor(line));
-            Font_DrawText(lineBuffer, xSize - logWidth + xOffset, rowY);
+            Font_DrawText(lineBuffer, m_windowX + xOffset, rowY);
             glColor(0xff000000);
         }
 
-        rowY += fontHeight + rowSpacing;
+        rowY += m_rowHeight;
 
     }
     Font_EndDrawing();
+
+}
+
+void NotificationLog::OnMouseDown(int x, int y, int button)
+{
+
+}
+
+void NotificationLog::OnMouseUp(int x, int y, int button)
+{
+
+}
+
+void NotificationLog::OnMouseMove(int x, int y)
+{
 
 }
 
@@ -124,6 +138,8 @@ void NotificationLog::LoadResources()
     m_soundSpotted = BASS_SampleLoad(false, "assets/sound_spotted.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
     m_soundDestroyed = BASS_SampleLoad(false, "assets/sound_infiltrate.wav", 0, 0, 3, BASS_SAMPLE_OVER_POS);
 
+    const int rowSpacing = 8;
+    m_rowHeight = Font_GetTextHeight(*m_font) + rowSpacing;
 }
 
 void NotificationLog::AddNotification(float time, const Protocol::NotificationPacket& packet)
@@ -132,6 +148,11 @@ void NotificationLog::AddNotification(float time, const Protocol::NotificationPa
     LogEntry entry = { time, packet };
     m_entries.push_back(entry);
     VisualizeNotification(packet);
+
+    if (m_entries.size() > kNumEntries)
+    {
+        m_firstEntry = static_cast<int>(m_entries.size()) - kNumEntries;
+    }
 
 }
 
@@ -192,4 +213,17 @@ void NotificationLog::AddNotificationParticle(Texture* texture, int x, int y)
     p->color = 0xffffffff;
     p->rotation = 0;
     p->updateFunction = NotificationBounceFunc;
+}
+
+int NotificationLog::GetRowUnderCursor(int x, int y)
+{
+    if (x >= m_windowX && x < m_windowX + kWindowWidth && 
+        y >= m_windowY && y <= m_windowY + kNumEntries * m_rowHeight)
+    {
+        return Clamp(m_firstEntry + (y - m_windowY) / m_rowHeight, 0, static_cast<int>(m_entries.size()) - 1);
+    }
+    else
+    {
+        return -1;
+    }
 }
