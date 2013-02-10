@@ -13,6 +13,22 @@ const float pi = 3.1415926535f;
 const int   _minTerminalDist = 20;
 const float _stopMergeDistance = 25.0f;
 
+const unsigned long kLineColor[] = 
+{
+    //0xFF231F20,
+    0xFFDD83B6,
+    0xFFF19526,
+    0xFF949599,
+    0xFFB31B64,
+    0xFF39349A,
+    0xFFE31F21,
+    0xFF02A353,
+    0xFF0098DF,
+};
+
+const int kNumLines = sizeof(kLineColor) / sizeof(unsigned long);
+
+
 bool GetLineLineIntersection(const Vec2& p1, const Vec2& p2, const Vec2& p3, const Vec2& p4, float& ua, float& ub, Vec2& result)
 {
     
@@ -364,4 +380,16 @@ int Map::GetLineBetween(int stopA, int stopB)
     }
 
     return -1;
+}
+
+unsigned long Map::GetLineColor(int line)
+{
+
+    if (line < 0)
+    {
+        return 0xff7f7f7f;
+    }
+
+    return kLineColor[line % kNumLines];
+
 }

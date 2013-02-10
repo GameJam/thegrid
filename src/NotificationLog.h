@@ -30,7 +30,7 @@ private:
 
     void PlaySample(HSAMPLE sample);
 
-    void VisualizeNotification(const Protocol::NotificationPacket& packet);
+    void VisualizeNotification(const Protocol::NotificationPacket& packet);   
     void AddNotificationParticle(Texture* texture, int x, int y);
 
     struct LogEntry

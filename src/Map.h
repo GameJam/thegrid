@@ -49,6 +49,7 @@ public:
     int GetStopForPoint(const Vec2& point);
 
     int GetLineBetween(int stopA, int stopB);
+    unsigned long GetLineColor(int line);
 
 private:
 

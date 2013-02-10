@@ -34,6 +34,7 @@ enum Notification
     Notification_LineUsed,
     Notification_AgentSpotted,
     Notification_HouseDestroyed,
+    Notification_Count,
 };
 
 struct InitializeGamePacket
