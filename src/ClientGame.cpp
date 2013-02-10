@@ -42,7 +42,7 @@ ClientGame::ClientGame(int xSize, int ySize)
 
     UpdateActiveButtons();
 
-    m_music = BASS_StreamCreateFile(FALSE, "assets/slow march.mp3", 0, 0, BASS_SAMPLE_LOOP);
+    m_music = BASS_StreamCreateFile(FALSE, "assets/get_a_groove.mp3", 0, 0, BASS_SAMPLE_LOOP);
     BASS_ChannelPlay(m_music, TRUE);
 
 }

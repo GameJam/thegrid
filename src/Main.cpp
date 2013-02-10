@@ -152,7 +152,7 @@ int main(int argc, char* argv[])
 
     SDL_EnableUNICODE(1);  
 
-    SDL_Surface* screen = SDL_SetVideoMode(xSize, ySize, 32, SDL_OPENGL);
+    SDL_Surface* screen = SDL_SetVideoMode(xSize, ySize, 32, SDL_OPENGL /*| SDL_FULLSCREEN*/);
 
     if ( screen == NULL )
     {
