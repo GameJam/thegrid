@@ -67,6 +67,12 @@ void ClientGame::LoadResources()
     TextureLoad load[] = 
         { 
             { &m_agentTexture,                          "assets/agent.png"              },
+            { &m_agentStakeoutTexture,                  "assets/agent_stakeout.png"     },
+            { &m_intelTexture,                          "assets/intel.png"              },
+            { &m_buildingTowerTexture,                  "assets/building_tower.png"     },
+            { &m_buildingBankTexture,                   "assets/building_bank.png"      },
+            { &m_buildingHouseTexture,                  "assets/building_safehouse.png" },
+            { &m_buildingPoliceTexture,                 "assets/building_police.png"    },
             { &m_buttonTexture[ButtonId_Infiltrate],    "assets/action_infiltrate.png"  },
             { &m_buttonTexture[ButtonId_Capture],       "assets/action_capture.png"     },
             { &m_buttonTexture[ButtonId_Stakeout],      "assets/action_stakeout.png"    },

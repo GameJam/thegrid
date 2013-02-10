@@ -102,6 +102,12 @@ private:
     int         m_stateY;
 
     Texture     m_agentTexture;
+    Texture     m_agentStakeoutTexture;
+    Texture     m_intelTexture;
+    Texture     m_buildingTowerTexture;
+    Texture     m_buildingBankTexture;
+    Texture     m_buildingHouseTexture;
+    Texture     m_buildingPoliceTexture;
     Texture     m_buttonTexture[ButtonId_NumButtons];
     Texture     m_buttonShadowTexture;
 
