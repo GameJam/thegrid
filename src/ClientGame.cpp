@@ -472,7 +472,7 @@ int ClientGame::GetAgentUnderCursor(int xScreen, int yScreen) const
     for (int i = 0; i < m_state.GetNumEntities(); ++i)
     {
         const Entity* entity = m_state.GetEntity(i);
-        if (entity->GetTypeId() == EntityTypeId_Agent)
+        if (entity->GetTypeId() == EntityTypeId_Agent && entity->GetId() != m_selectedAgent)
         {
             const AgentEntity* agent = static_cast<const AgentEntity*>(entity);
             Vec2 position = GetAgentPosition(agent);
