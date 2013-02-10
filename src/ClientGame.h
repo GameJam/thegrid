@@ -113,6 +113,7 @@ private:
 
     Texture     m_agentTexture;
     Texture     m_agentStakeoutTexture;
+    Texture     m_agentIntelTexture;
     Texture     m_intelTexture;
     Texture     m_buildingTowerTexture;
     Texture     m_buildingBankTexture;
