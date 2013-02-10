@@ -2,6 +2,7 @@
 
 #include "Log.h"
 #include "Map.h"
+#include "BuildingEntity.h"
 
 #include <SDL.h>
 
@@ -124,6 +125,19 @@ Server::Server()
     InitializeEntityTypes(m_entityTypes);
 
     m_map.Generate(m_xMapSize, m_yMapSize, m_mapSeed);
+
+    for (int i = 0; i < m_map.GetNumStops(); ++i)
+    {
+        const Stop& stop = m_map.GetStop(i);
+        if (stop.structureType != StructureType_None)
+        {
+            BuildingEntity* building = new BuildingEntity();
+            building->m_stop = i;
+            building->m_type = stop.structureType;
+            m_globalState.AddEntity(building);
+        }
+    }
+
 }
 
 Server::~Server()

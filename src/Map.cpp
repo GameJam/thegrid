@@ -128,6 +128,34 @@ void Map::Generate(int xSize, int ySize, int seed)
     }
     */
 
+    // Place the structures.
+
+    const int numBanks  = 2;
+    const int numPolice = 3;
+    const int numTowers = 4;
+
+    PlaceStructures(StructureType_Bank,   numBanks, random);
+    PlaceStructures(StructureType_Police, numPolice, random);
+    PlaceStructures(StructureType_Tower,  numTowers, random);
+
+}
+
+void Map::PlaceStructures(StructureType structureType, int number, Random& random)
+{
+    for (int i = 0; i < number; ++i)
+    {
+        int offset = random.Generate(0, m_numStops);
+        for (int j = 0; j < m_numStops; ++j)
+        {
+            int stopIndex = (j + offset) % m_numStops;
+            Stop& stop = m_stop[stopIndex];
+            if (stop.structureType == StructureType_None)
+            {
+                stop.structureType = structureType;
+                break;
+            }
+        }
+    }
 }
 
 void Map::StraightenStop(Stop& stop)
@@ -209,9 +237,10 @@ void Map::Connect(int stop1, int stop2, int line)
 int Map::AddStop(const Vec2& point, int line, bool terminal)
 {
     assert(m_numStops < s_maxStops);
-    m_stop[m_numStops].point = point;
-    m_stop[m_numStops].line = line;
-    m_stop[m_numStops].terminal = terminal;
+    m_stop[m_numStops].point            = point;
+    m_stop[m_numStops].line             = line;
+    m_stop[m_numStops].terminal         = terminal;
+    m_stop[m_numStops].structureType    = StructureType_None;
     ++m_numStops;
     return m_numStops - 1;
 }

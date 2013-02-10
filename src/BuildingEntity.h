@@ -3,6 +3,7 @@
 
 #include "Entity.h"
 #include "Vec2.h"
+#include "Map.h"
 
 class BuildingEntity : public Entity
 {
@@ -10,7 +11,8 @@ public:
 
     BuildingEntity();
     
-    Vec2    m_position;
+    int             m_stop;
+    StructureType   m_type;
 
 };
 

@@ -6,12 +6,21 @@
 
 class Random;
 
+enum StructureType
+{
+    StructureType_None,
+    StructureType_Bank,
+    StructureType_Police,
+    StructureType_Tower,
+};
+
 struct Stop
 {
     Vec2                point;
     int                 line;       // -1 means a hub
     bool                terminal;   // End of the line buddy
     std::vector<int>    children;
+    StructureType       structureType;
 };
 
 struct Rail
@@ -49,6 +58,8 @@ private:
 
     void EnforceRailConstraint(Rail& rail) const;
     void StraightenStop(Stop& stop);
+
+    void PlaceStructures(StructureType structureType, int number, Random& random);
 
 private:
 

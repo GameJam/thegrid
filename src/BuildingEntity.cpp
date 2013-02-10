@@ -2,5 +2,6 @@
 
 BuildingEntity::BuildingEntity() : Entity(EntityTypeId_Building)
 {
-    m_position = Vec2(0.0f, 0.0f);
+    m_stop = 0;
+    m_type = StructureType_None;
 }

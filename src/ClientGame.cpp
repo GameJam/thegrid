@@ -2,6 +2,7 @@
 #include "Log.h"
 #include "Entity.h"
 #include "AgentEntity.h"
+#include "BuildingEntity.h"
 
 #include <math.h>
 #include <assert.h>
@@ -270,6 +271,31 @@ void ClientGame::Render() const
                 else
                 {
                     Render_DrawSprite(m_agentTexture, static_cast<int>(position.x) - m_agentTexture.xSize / 2, static_cast<int>(position.y) - m_agentTexture.ySize / 2);
+                }
+            }
+            break;
+        case EntityTypeId_Building:
+            {
+                const BuildingEntity* building = static_cast<const BuildingEntity*>(entity);
+                Vec2 position = m_map.GetStop(building->m_stop).point;
+                
+                const Texture* texture = NULL;
+
+                switch (building->m_type)
+                {
+                case StructureType_Bank:
+                    texture = &m_buildingBankTexture;
+                    break;
+                case StructureType_Tower:
+                    texture = &m_buildingTowerTexture;
+                    break;
+                case StructureType_Police:
+                    texture = &m_buildingPoliceTexture;
+                    break;
+                }
+                if (texture != NULL)
+                {
+                    Render_DrawSprite(*texture, static_cast<int>(position.x) - texture->xSize / 2, static_cast<int>(position.y) - texture->ySize / 2);
                 }
             }
             break;
