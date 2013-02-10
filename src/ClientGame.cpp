@@ -565,8 +565,8 @@ Vec2 ClientGame::GetAgentPosition(const AgentEntity* agent) const
         Vec2 to = m_map.GetStop(targetStop).point;
 
         float t = (m_time - agent->m_departureTime) / (agent->m_arrivalTime - agent->m_departureTime);
-        t = EaseInOutQuad(t, 0.0f, 1.0f, 1.0f);
         t = Clamp(t, 0.0f, 1.0f);
+        t = EaseInOutQuad(t, 0.0f, 1.0f, 1.0f);
         
         return Lerp(from, to, t);
     }
