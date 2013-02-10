@@ -87,7 +87,7 @@ void Map::Generate(int xSize, int ySize, int seed)
     const int maxLines = 8;
     int line = 0;
 
-    for (int i = 0; i < maxLines; ++i)
+    for (int i = 0; i < maxLines - 1; ++i)
     {
 
         int r = random.Generate(0, xNumTiles * 2 + yNumTiles * 2);
@@ -129,12 +129,50 @@ void Map::Generate(int xSize, int ySize, int seed)
 
     }
 
+ 
     int numTerminals = m_numStops;
 
     for (int i = 0; i < numTerminals; ++i)
     {
         GenerateLine(xSize, ySize, i, random);
     }
+
+   // Create an additional line that circles the center of the city.
+
+    int xNumSteps = 2;
+    int yNumSteps = 2;
+    int lastStop = -1;
+    int firstStop = -1;
+
+    for (int i = 0; i < 16; ++i)
+    {
+
+        float x = cosf((i * 2 * 3.14159265f) / 15) * 2.0f;
+        float y = sinf((i * 2 * 3.14159265f) / 15) * 1.5f;
+
+        x += (xNumTiles - xNumSteps) / 2;
+        y += (yNumTiles - yNumSteps) / 2;
+
+        Vec2 point((x + 0.5f) * terminalSpacing, (y + 0.5f) * terminalSpacing);
+
+        point.x = floorf(point.x / 50.0f) * 50.0f;
+        point.y = floorf(point.y / 50.0f) * 50.0f;
+
+        int stop = MergeStop(point, line, 50.0f);
+
+        if (lastStop != -1)
+        {
+            Connect(lastStop, stop, line);
+        }
+        else
+        {
+            firstStop = stop;
+        }
+        lastStop = stop;
+        
+    }
+    Connect(lastStop, firstStop, line);
+
 
     // Initialize the stop children.
     for (int i = 0; i < m_numRails; ++i)
