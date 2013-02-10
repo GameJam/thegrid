@@ -74,6 +74,7 @@ private:
     EntityState     m_globalState;
     Map             m_map;
     float           m_time;
+    float           m_timeSinceUpdate;
 
     int             m_mapSeed;
     int             m_gridSpacing;

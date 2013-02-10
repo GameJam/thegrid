@@ -7,6 +7,8 @@
 #include <SDL.h>
 #include <algorithm>
 
+static const float kServerTickRate = 1.0f / 30.0f;
+
 Server::Client::Client(int id, Server& server)
 {
 
@@ -161,11 +163,12 @@ Server::Server()
 {
     m_host.Listen(12345);
 
-    m_time = 0;
-    m_mapSeed = 42;
-    m_gridSpacing = 150;
-    m_xMapSize = m_gridSpacing * 9;
-    m_yMapSize = m_gridSpacing * 6;
+    m_time              = 0;
+    m_timeSinceUpdate   = 0;
+    m_mapSeed           = 42;
+    m_gridSpacing       = 150;
+    m_xMapSize          = m_gridSpacing * 9;
+    m_yMapSize          = m_gridSpacing * 6;
 
     InitializeEntityTypes(m_entityTypes);
 
@@ -185,22 +188,29 @@ Server::~Server()
 void Server::Update(float deltaTime)
 {
 
-    m_time += deltaTime;
-    m_globalState.SetTime(m_time);
-
-    m_host.Service(this);
-
-    for (ClientMap::iterator i = m_clientMap.begin(); i != m_clientMap.end(); ++i)
+    m_timeSinceUpdate += deltaTime;
+    
+    if (m_timeSinceUpdate > kServerTickRate)
     {
-        i->second->Update();
+
+        m_timeSinceUpdate -= kServerTickRate;
+        m_time += kServerTickRate;
+
+        m_globalState.SetTime(m_time);
+
+        m_host.Service(this);
+
+        for (ClientMap::iterator i = m_clientMap.begin(); i != m_clientMap.end(); ++i)
+        {
+            i->second->Update();
+        }
+
+        for (ClientMap::iterator i = m_clientMap.begin(); i != m_clientMap.end(); ++i)
+        {
+            SendClientState(i->second->GetId());
+        }
+
     }
-
-    for (ClientMap::iterator i = m_clientMap.begin(); i != m_clientMap.end(); ++i)
-    {
-        SendClientState(i->second->GetId());
-    }
-
-
 
 }
 
