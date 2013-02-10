@@ -3,16 +3,15 @@
 #include <winsock2.h>
 #include <ws2tcpip.h>
 
-static void ConvertAddress(unsigned long ip, int port, sockaddr_in& address)
-{
-    address.sin_port              = htons(port);
-    address.sin_addr.S_un.S_addr  = htonl(0x7F000001);
-    address.sin_family            = AF_INET;
-}
-
 LanBroadcast::LanBroadcast()
 {
+    m_socket = INVALID_SOCKET;
     m_serverName[0] = 0;
+}
+
+LanBroadcast::~LanBroadcast()
+{
+    Shutdown();
 }
 
 bool LanBroadcast::Initialize(int port)
@@ -41,6 +40,15 @@ bool LanBroadcast::Initialize(int port)
     return true;
 }
 
+void LanBroadcast::Shutdown()
+{
+    if (m_socket != INVALID_SOCKET)
+    {
+        shutdown(m_socket, SD_SEND);
+        closesocket(m_socket);
+        m_socket = INVALID_SOCKET;
+    }
+}
 bool LanBroadcast::BroadcastInfo()
 {
 

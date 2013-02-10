@@ -7,8 +7,11 @@ class LanBroadcast
 public:
 
     LanBroadcast();
+    ~LanBroadcast();
 
     bool Initialize(int port);
+    void Shutdown();
+
     bool BroadcastInfo();
 
 private:

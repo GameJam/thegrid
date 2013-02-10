@@ -1170,9 +1170,16 @@ void ClientGame::RenderMainMenu()
     for (int i = 0; i < m_lanListener.GetNumServers(); ++i)
     {
         const LanListener::Server& server = m_lanListener.GetServer(i);
-        char buffer[1024];
-        sprintf("Join '%s'", server.name);
-        UI_Button(UI_ID, m_font, (m_xSize - xButtonSize) / 2, m_ySize - 300 + (yButtonSize + 10) * (1 + i), xButtonSize, yButtonSize, buffer);
+        char buffer[256];
+        sprintf(buffer, "Join '%s'", server.name);
+        if (UI_Button(UI_ID, m_font, (m_xSize - xButtonSize) / 2, m_ySize - 300 + (yButtonSize + 10) * (1 + i), xButtonSize, yButtonSize, buffer))
+        {
+            char addres[256];
+            sprintf(addres, "%d.%d.%d.%d",
+                (server.ip >> 24) & 0xFF, (server.ip >> 16) & 0xFF, (server.ip >> 8) & 0xFF, server.ip & 0xFF);
+            m_gameState = GameState_WaitingForServer;
+            Connect(addres, server.port);
+        }
     }
 
     UI_End();

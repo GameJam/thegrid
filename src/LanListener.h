@@ -21,8 +21,11 @@ public:
     };
 
     LanListener();
+    ~LanListener();
 
     bool Initialize(int port);
+    void Shutdown();
+
     void Service();
 
     int GetNumServers() const { return m_numServers; }

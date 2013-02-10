@@ -7,6 +7,12 @@ LanListener::LanListener()
 {
     m_numServers    = 0;
     m_port          = 0;
+    m_socket        = INVALID_SOCKET;
+}
+
+LanListener::~LanListener()
+{
+    Shutdown();
 }
 
 bool LanListener::Initialize(int port)
@@ -31,6 +37,17 @@ bool LanListener::Initialize(int port)
     }
 
     return true;
+}
+
+void LanListener::Shutdown()
+{
+    m_numServers = 0;
+    if (m_socket != INVALID_SOCKET)
+    {
+        shutdown(m_socket, SD_SEND);
+        closesocket(m_socket);
+        m_socket = INVALID_SOCKET;
+    }
 }
 
 void LanListener::Service()
@@ -90,6 +107,7 @@ void LanListener::AddServer(const char* name, unsigned long ip, int port, time_t
         m_server[m_numServers].port = port;
         m_server[m_numServers].time = time;
         strncpy(m_server[m_numServers].name, name, s_maxServerName);
+        ++m_numServers;
     }
 
 }
