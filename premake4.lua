@@ -37,17 +37,20 @@ project "TheGrid"
 		"libs/SDL/include",
 		"libs/FreeImage/include",
 		"libs/enet-1.3.6/include",
+		"libs/bass/include",
 	}
 	libdirs {
 		"libs/SDL/lib",
 		"libs/FreeImage/lib",
 		"libs/enet-1.3.6",
+		"libs/bass/lib",
 	}
     links {
 		"SDL",
 		"SDLmain",
 		"freeimage",
 		"enet",
+		"bass",
 	}
 	if platform == "win32" then
 		links {

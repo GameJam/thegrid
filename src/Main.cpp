@@ -5,6 +5,8 @@
 #include "Log.h"
 
 #include <SDL.h>
+#include <SDL_syswm.h>
+#include <bass.h>
 
 #include <string>
 #include <hash_map>
@@ -158,6 +160,16 @@ int main(int argc, char* argv[])
         exit(EXIT_FAILURE);
     }
 
+    SDL_SysWMinfo sysInfo;
+    SDL_VERSION(&sysInfo.version);
+  
+    if (SDL_GetWMInfo(&sysInfo) <= 0)
+    {
+        fprintf(stderr, "Error: %s\n", SDL_GetError());
+        exit(EXIT_FAILURE);
+    }
+
+    BASS_Init(-1, 44100, 0, sysInfo.window, NULL);
 
     const char* hostName = "127.0.0.1";
     Server* server = NULL;
@@ -196,6 +208,8 @@ int main(int argc, char* argv[])
 
     Host::Shutdown();
     Log::Shutdown();
+
+    BASS_Free();
 
     return EXIT_SUCCESS;
 

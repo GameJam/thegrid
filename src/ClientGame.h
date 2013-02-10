@@ -9,12 +9,15 @@
 #include "Protocol.h"
 #include "ClientWorldState.h"
 
+#include <bass.h>
+
 class ClientGame : Host::Handler
 {
 
 public:
 
     ClientGame(int xSize, int ySize);
+    ~ClientGame();
 
     void LoadResources();
     void Render() const;
@@ -88,6 +91,8 @@ private:
     int         m_mapScale;
     int         m_mapX;
     int         m_mapY;
+
+    HSTREAM     m_music;
 
     State       m_state;
     ButtonId    m_activeButton;

@@ -35,6 +35,18 @@ ClientGame::ClientGame(int xSize, int ySize) : m_host(1)
 
     CenterMap(xMapSize / 2, yMapSize / 2);
     UpdateActiveButtons();
+
+    m_music = BASS_StreamCreateFile(FALSE, "assets/slow march.mp3", 0, 0, BASS_SAMPLE_LOOP);
+    BASS_ChannelPlay(m_music, TRUE);
+
+}
+
+ClientGame::~ClientGame()
+{
+    if (m_music != NULL)
+    {
+        BASS_StreamFree(m_music);
+    }
 }
 
 void ClientGame::LoadResources()
