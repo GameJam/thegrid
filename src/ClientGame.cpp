@@ -390,7 +390,7 @@ int ClientGame::GetAgentUnderCursor(int xScreen, int yScreen) const
 
 Vec2 ClientGame::GetAgentPosition(const AgentEntity* agent) const
 {
-    int stop = agent->GetCurrentStop();
+    int stop = agent->m_currentStop;
     if (stop != -1)
     {
         return m_map.GetStop(stop).point;
