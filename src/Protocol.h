@@ -11,6 +11,11 @@ enum PacketType
     PacketType_State
 };
 
+enum Order
+{
+    Order_MoveTo
+};
+
 struct InitializeGamePacket
 {
     char        packetType;
@@ -23,8 +28,13 @@ struct InitializeGamePacket
 struct OrderPacket
 {
     char        packetType;
+    Order       order;
     int         agentId;
-    int         x, y;
+
+    union
+    {
+        int     targetStop;      
+    };
 };
 
 struct StatePacketHeader

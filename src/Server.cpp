@@ -5,14 +5,16 @@
 #include "BuildingEntity.h"
 
 #include <SDL.h>
+#include <algorithm>
 
 Server::Client::Client(int id, Server& server)
 {
 
     m_id = id;
     m_map = &server.GetMap();
+    m_state = &server.GetState();
+
     m_random.Seed(SDL_GetTicks());
-    EntityState& state = server.GetState();
 
     for (int i = 0; i < 3; ++i)
     {
@@ -22,7 +24,7 @@ Server::Client::Client(int id, Server& server)
         agent->SetOwnerId(m_id);
 
         m_agents.push_back(agent);
-        state.AddEntity(agent);
+        m_state->AddEntity(agent);
     }
 
 }
@@ -32,33 +34,14 @@ int Server::Client::GetId() const
     return m_id;
 }
 
-void Server::Client::Update(Server& server)
+void Server::Client::Update()
 {
-
-    EntityState& state = server.GetState();
-
-    // 1. Execute orders
-
-    // FAKE ORDERS
-    for (size_t i = 0; i < m_agents.size(); ++i)
-    {
-        AgentEntity* agent = m_agents[i];
-
-        if (agent->m_targetStop == -1)
-        {
-            const std::vector<int>& neighbours = m_map->GetStop(agent->m_currentStop).children;
-            agent->m_targetStop = neighbours[m_random.Generate(0, static_cast<int>(neighbours.size() - 1))];
-            agent->m_arrivalTime = state.GetTime() + 2;
-        }
-    }
-
     
-    // 2. Update state
     for (size_t i = 0; i < m_agents.size(); ++i)
     {
         AgentEntity* agent = m_agents[i];
 
-        if (agent->m_targetStop != -1 && agent->m_arrivalTime < state.GetTime())
+        if (agent->m_targetStop != -1 && agent->m_arrivalTime < m_state->GetTime())
         {
             agent->m_currentStop = agent->m_targetStop;
             agent->m_targetStop = -1;
@@ -66,49 +49,46 @@ void Server::Client::Update(Server& server)
 
     }
 
-    /*
-    ClientList clients;
-    server.GetClients(clients);
-
-    for (size_t i = 0; i < clients.size(); ++i)
-    {
-
-        Client* client = clients[i];
-        if (client == this)
-        {
-            continue;
-        }
-        
-        TestEntity* spiedEntity = NULL;
-
-        stdext::hash_map<int, TestEntity*>::iterator iter = m_spiedTestEntities.find(client->GetId());
-        if (iter == m_spiedTestEntities.end())
-        {
-            // new entity found!
-            spiedEntity = new TestEntity();
-            spiedEntity->clientId = client->GetId();
-            m_state.AddEntity(spiedEntity);
-            m_spiedTestEntities[client->GetId()] = spiedEntity;
-        }
-        else
-        {
-            spiedEntity = iter->second;
-        }
-
-        client->GetTest(spiedEntity->x, spiedEntity->y);
-
-    }
-    */
-
-
 }
 
 void Server::Client::OnOrder(const Protocol::OrderPacket& order)
 {
     
-    LogDebug("Client %i ordered move to %i, %i", m_id, order.x, order.y);
+    AgentEntity* agent = FindAgent(order.agentId);
+
+    if (agent == NULL)
+    {
+        return;
+    }
+
+    switch (order.order)
+    {
+    case Protocol::Order_MoveTo:
+        
+        const std::vector<int>& neighbors = m_map->GetStop(agent->m_currentStop).children;
+        if (agent->m_targetStop == -1 && std::find(neighbors.begin(), neighbors.end(), order.targetStop) != neighbors.end())
+        {
+            agent->m_targetStop = order.targetStop;
+            agent->m_arrivalTime = m_state->GetTime() + 1;
+        }
+        break;
+    }
     
 }
+
+AgentEntity* Server::Client::FindAgent(int agentId)
+{
+    for (size_t i = 0; i < m_agents.size(); ++i)
+    {
+        if (m_agents[i]->GetId() == agentId)
+        {
+            return m_agents[i];
+        }
+    }
+
+    return NULL;
+}
+
 
 Server::Server() 
     : m_host(1), 
@@ -159,7 +139,7 @@ void Server::Update(float deltaTime)
 
     for (ClientMap::iterator i = m_clientMap.begin(); i != m_clientMap.end(); ++i)
     {
-        i->second->Update(*this);
+        i->second->Update();
     }
 
     for (ClientMap::iterator i = m_clientMap.begin(); i != m_clientMap.end(); ++i)

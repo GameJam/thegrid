@@ -365,6 +365,11 @@ void ClientGame::OnMouseDown(int x, int y, int button)
             if (agentUnderCursor == -1 && stopUnderCursor != -1)
             {
                 // Order to move to station
+                Protocol::OrderPacket order;
+                order.order = Protocol::Order_MoveTo;
+                order.agentId = m_selectedAgent;
+                order.targetStop = stopUnderCursor;
+                SendOrder(order);
             }
             else
             {
@@ -395,10 +400,6 @@ void ClientGame::OnMouseDown(int x, int y, int button)
         int blipX, blipY;
         ScreenToWorld(x, y, blipX, blipY);
 
-        Protocol::OrderPacket order;
-        order.x = blipX;
-        order.y = blipY;
-        SendOrder(order);
     }
 
     if (button == 3)
