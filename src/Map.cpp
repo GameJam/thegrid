@@ -87,30 +87,46 @@ void Map::Generate(int xSize, int ySize, int seed)
     const int maxLines = 8;
     int line = 0;
 
-    for (int x = 0; x < xNumTiles; ++x)
+    for (int i = 0; i < maxLines; ++i)
     {
-        for (int y = 0; y < yNumTiles; ++y)
+
+        int r = random.Generate(0, xNumTiles * 2 + yNumTiles * 2);
+
+        int x = 0;
+        int y = 0;
+
+        if (r < xNumTiles)
         {
-
-            // Make terminals less likely towards the interior of the map
-
-            const int maxProb  = 30;
-            const int probStep = 15;
-
-            int xDist = Min(x, xNumTiles - 1 - x);
-            int yDist = Min(y, yNumTiles - 1 - y);
-            int prob  = Max(xDist, yDist) * probStep + maxProb;
-
-            if (random.Generate(0, 100) > prob && line < maxLines)
-            {
-                Vec2 point;
-                point.x = (float)(x * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
-                point.y = (float)(y * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
-                AddStop(point, line, true);
-                ++line;
-            }
-
+            x = r;
+            y = 0;
         }
+        else if (r < xNumTiles * 2)
+        {
+            x = r - xNumTiles;
+            y = yNumTiles - 1;
+        }
+        else if (r < xNumTiles * 2 + yNumTiles)
+        {
+            x = 0;
+            y = r - xNumTiles * 2;
+        }
+        else
+        {
+            x = xNumTiles - 1;
+            y = r - (xNumTiles * 2 + yNumTiles);
+        }
+
+        assert(x >= 0);
+        assert(x < xNumTiles);
+        assert(y >= 0);
+        assert(y < yNumTiles);
+
+        Vec2 point;
+        point.x = (float)(x * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
+        point.y = (float)(y * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
+        AddStop(point, line, true);
+        ++line;
+
     }
 
     int numTerminals = m_numStops;
