@@ -65,7 +65,7 @@ void ClientGame::LoadResources()
             { &m_buttonTexture[ButtonId_Capture],       "assets/action_capture.png"     },
             { &m_buttonTexture[ButtonId_Stakeout],      "assets/action_stakeout.png"    },
             { &m_buttonTexture[ButtonId_Hack],          "assets/action_hack.png"        },
-            { &m_buttonTexture[ButtonId_Intel],         "assets/action_intel.png"       },
+            { &m_buttonTexture[ButtonId_Intel],         "assets/action_drop.png"        },
             { &m_buttonShadowTexture,                   "assets/button_shadow.png"      },
         };
 
