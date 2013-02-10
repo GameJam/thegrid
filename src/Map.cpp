@@ -54,6 +54,7 @@ Map::Map()
 {
     m_numStops = 0;
     m_numRails = 0;
+    m_numRiverVertices = 0;
 }
 
 void Map::Generate(int xSize, int ySize, int seed)
@@ -126,6 +127,8 @@ void Map::Generate(int xSize, int ySize, int seed)
         }
     }
     */
+
+    GenerateRiver( Vec2(0.0f, ySize / 2.0f), Vec2(xSize, ySize / 2.0f) );
 
 }
 

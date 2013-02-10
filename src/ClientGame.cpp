@@ -105,7 +105,8 @@ void ClientGame::Render() const
 
     const unsigned long lineColor[] = 
         {
-            0xFF231F20,
+            //0xFF231F20,
+            0xFFDD83B6,
             0xFFF19526,
             0xFF949599,
             0xFFB31B64,
