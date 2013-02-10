@@ -330,8 +330,23 @@ void ClientGame::OnMouseDown(int x, int y, int button)
         else if (y < m_ySize - yStatusBarSize)
         {
             bool hasSelection = (m_selectedAgent != -1);
-            m_selectedAgent = GetAgentUnderCursor(x, y);
+            int agentUnderCursor = GetAgentUnderCursor(x, y);
+            
+            int xWorld, yWorld;
+            ScreenToWorld(x, y, xWorld, yWorld);
+            int stopUnderCursor = m_map.GetStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
+
+            if (agentUnderCursor == -1 && stopUnderCursor != -1)
+            {
+                // Order to move to station
+            }
+            else
+            {
+                m_selectedAgent = agentUnderCursor;
+            }
+
             UpdateActiveButtons();
+
             // First click deselects.
             if (m_selectedAgent == -1 && !hasSelection)
             {

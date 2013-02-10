@@ -7,15 +7,12 @@
 
 class Entity;
 
-class ClientWorldState
+class EntityState
 {
 
 public:
 
-    ClientWorldState(EntityTypeList* entityTypeList);
-
-    void SetClientId(int clientId);
-    int GetClientId() const;
+    EntityState(EntityTypeList* entityTypeList);
 
     void SetTime(float time);
     float GetTime() const;
@@ -26,15 +23,14 @@ public:
     
     void AddEntity(Entity* entity);
 
-    size_t GetSerializedSize() const;
-    void Serialize(void* buffer, size_t size) const;
+    size_t GetSerializedSize(int clientId) const;
+    void Serialize(int clientId, void* buffer, size_t size) const;
     void Deserialize(const void* buffer, size_t size);
 
 private:
 
     typedef std::vector<Entity*> EntityList;
 
-    int             m_clientId;
     float           m_time;
     EntityList      m_entities;
     EntityTypeList* m_entityTypeList;

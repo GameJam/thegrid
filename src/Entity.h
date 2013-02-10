@@ -13,12 +13,16 @@ public:
     void SetId(int id);
     int GetId() const;
 
+    void SetOwnerId(int clientId);
+    int GetOwnerId() const;
+
     EntityTypeId GetTypeId() const;
 
 protected:
 
-    int m_id;
-    EntityTypeId m_typeId;
+    int             m_id;
+    int             m_ownerId;
+    EntityTypeId    m_typeId;
 
 };
 
