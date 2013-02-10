@@ -239,8 +239,9 @@ Server::Server()
     : m_host(1), 
       m_globalState(&m_typeRegistry)
 {
-    m_host.Listen(12345);
-    m_lanBroadcast.Initialize(Protocol::listenPort);
+    int gamePort = 12345;
+    m_host.Listen(gamePort);
+    m_lanBroadcast.Initialize(Protocol::listenPort, gamePort);
 
     m_time                  = 0;
     m_timeSinceUpdate       = 0;

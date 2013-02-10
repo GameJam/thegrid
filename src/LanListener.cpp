@@ -77,9 +77,9 @@ void LanListener::Service()
             (sockaddr*)&address, &addressSize);
 
         unsigned long ip   = ntohl(address.sin_addr.S_un.S_addr);
-        int           port = ntohs(address.sin_port);
+        int           port = *((long*)buffer);
 
-        AddServer(buffer, ip, port, currentTime);
+        AddServer(buffer + sizeof(long), ip, port, currentTime);
 
     }
 

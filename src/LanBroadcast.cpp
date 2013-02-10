@@ -14,10 +14,11 @@ LanBroadcast::~LanBroadcast()
     Shutdown();
 }
 
-bool LanBroadcast::Initialize(int port)
+bool LanBroadcast::Initialize(int port, int gamePort)
 {
 
     m_port = port;
+    m_gamePort = gamePort;
 
     m_socket = (int)socket(AF_INET,SOCK_DGRAM, 0);
     if (m_socket == -1)
@@ -52,8 +53,10 @@ void LanBroadcast::Shutdown()
 bool LanBroadcast::BroadcastInfo()
 {
 
-    char packet[ sizeof(m_serverName) ];
-    memcpy(packet, m_serverName, sizeof(m_serverName));
+    char packet[ sizeof(long) + sizeof(m_serverName) ];
+
+    *((long*)packet) = m_gamePort;
+    memcpy(packet + sizeof(long), m_serverName, sizeof(m_serverName));
 
     sockaddr_in address;
     address.sin_port            = htons(m_port);

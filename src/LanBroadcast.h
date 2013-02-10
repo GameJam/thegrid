@@ -9,7 +9,7 @@ public:
     LanBroadcast();
     ~LanBroadcast();
 
-    bool Initialize(int port);
+    bool Initialize(int port, int gamePort);
     void Shutdown();
 
     bool BroadcastInfo();
@@ -19,6 +19,7 @@ private:
     int             m_socket;
     char            m_serverName[64];
     int             m_port;
+    int             m_gamePort;
 
 };
 
