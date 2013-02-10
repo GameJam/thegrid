@@ -9,12 +9,12 @@ public:
 
     AgentEntity();
     
-    int m_currentStop;
+    int     m_currentStop;
     bool    m_hasIntel;
     
     // Movement hack
-    int m_targetStop;
-    float m_arrivalTime;
+    int     m_targetStop;
+    float   m_arrivalTime;
 
 };
 

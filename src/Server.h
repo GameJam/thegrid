@@ -27,16 +27,19 @@ public:
 
         int GetId() const;
 
-        void Update(Server& server);
+        void Update();
 
         void OnOrder(const Protocol::OrderPacket& order);
 
     private:
+
+        AgentEntity* FindAgent(int agentId);
         
         typedef std::vector<AgentEntity*> AgentList;
 
         int                 m_id;
         Map*                m_map;
+        EntityState*        m_state;
         Random              m_random;
         AgentList           m_agents;
 
