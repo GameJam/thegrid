@@ -32,16 +32,6 @@ bool LanBroadcast::Initialize(int port)
         return false;
     }
 
-    sockaddr_in address;
-    address.sin_port            = htons(m_port);
-    address.sin_family          = AF_INET;
-    address.sin_addr.s_addr     = htonl(INADDR_BROADCAST);
-
-    if (bind(m_socket, (struct sockaddr*)&address, sizeof(address)) == -1)
-    {
-        return false;
-    }
-
 #ifdef WIN32
     DWORD length = sizeof(m_serverName) - 1;
     m_serverName[0] = 0;
@@ -58,9 +48,9 @@ bool LanBroadcast::BroadcastInfo()
     memcpy(packet, m_serverName, sizeof(m_serverName));
 
     sockaddr_in address;
-    address.sin_port                = htons(m_port);
-    address.sin_family              = AF_INET;
-    address.sin_addr.S_un.S_addr    = htonl(0x7F000001);
+    address.sin_port            = htons(m_port);
+    address.sin_family          = AF_INET;
+    address.sin_addr.s_addr     = INADDR_BROADCAST;
 
     int result = sendto(m_socket, packet, sizeof(packet),
         0, (const sockaddr*)&address, sizeof(address));

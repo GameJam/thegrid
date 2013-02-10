@@ -1118,7 +1118,13 @@ void ClientGame::RenderMainMenu()
         HostGame();
     }
 
-    UI_Button(UI_ID, m_font, (m_xSize - xButtonSize) / 2, m_ySize - 300 + (yButtonSize + 10) * 1, xButtonSize, yButtonSize, "Join a game");
+    for (int i = 0; i < m_lanListener.GetNumServers(); ++i)
+    {
+        const LanListener::Server& server = m_lanListener.GetServer(i);
+        char buffer[1024];
+        sprintf("Join '%s'", server.name);
+        UI_Button(UI_ID, m_font, (m_xSize - xButtonSize) / 2, m_ySize - 300 + (yButtonSize + 10) * (1 + i), xButtonSize, yButtonSize, buffer);
+    }
 
     UI_End();
 

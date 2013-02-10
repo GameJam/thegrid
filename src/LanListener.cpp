@@ -17,7 +17,7 @@ bool LanListener::Initialize(int port)
     sockaddr_in address;
     address.sin_port                = htons(m_port);
     address.sin_family              = AF_INET;
-    address.sin_addr.s_addr         = htonl(INADDR_ANY);
+    address.sin_addr.s_addr         = INADDR_ANY;
 
     if (bind(m_socket, (struct sockaddr*)&address, sizeof(address)) == -1)
     {

@@ -25,6 +25,9 @@ public:
     bool Initialize(int port);
     void Service();
 
+    int GetNumServers() const { return m_numServers; }
+    const Server& GetServer(int i) const { return m_server[i]; }
+
 private:
 
     void AddServer(const char* name, unsigned long ip, int port, time_t time);
