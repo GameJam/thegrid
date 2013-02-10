@@ -97,7 +97,9 @@ private:
     const Entity* GetEntity(int id) const;
 
 private:
-  
+
+    static const Protocol::Order kButtonToOrder[ButtonId_NumButtons];
+
     float       m_time;
     int         m_xSize;
     int         m_ySize;

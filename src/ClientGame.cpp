@@ -10,6 +10,14 @@
 
 const int yStatusBarSize    = 140;
 
+const Protocol::Order ClientGame::kButtonToOrder[ButtonId_NumButtons] = 
+{
+    Protocol::Order_Infiltrate,
+    Protocol::Order_Capture,
+    Protocol::Order_Stakeout,
+    Protocol::Order_Hack,
+    Protocol::Order_Intel
+};
 
 static float EaseInOutQuad(float t, float b, float c, float d) 
 {
@@ -376,6 +384,11 @@ void ClientGame::OnMouseDown(int x, int y, int button)
             m_activeButton = buttonId;
             m_activeButtonDown = true;
             m_mapState = State_Button;
+
+            Protocol::OrderPacket order;
+            order.order = kButtonToOrder[buttonId];
+            order.agentId = m_selectedAgent;
+            SendOrder(order);
         }
         else if (y < m_ySize - yStatusBarSize)
         {

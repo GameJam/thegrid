@@ -13,7 +13,12 @@ enum PacketType
 
 enum Order
 {
-    Order_MoveTo
+    Order_MoveTo,
+    Order_Infiltrate,
+    Order_Capture,
+    Order_Stakeout,
+    Order_Hack,
+    Order_Intel
 };
 
 struct InitializeGamePacket
@@ -34,7 +39,7 @@ struct OrderPacket
 
     union
     {
-        int     targetStop;      
+        int     targetStop;
     };
 };
 

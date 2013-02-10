@@ -64,15 +64,21 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
     switch (order.order)
     {
     case Protocol::Order_MoveTo:
-        
-        const std::vector<int>& neighbors = m_map->GetStop(agent->m_currentStop).children;
-        if (agent->m_targetStop == -1 && std::find(neighbors.begin(), neighbors.end(), order.targetStop) != neighbors.end())
         {
-            agent->m_targetStop = order.targetStop;
-            agent->m_departureTime = m_state->GetTime();
-            agent->m_arrivalTime = m_state->GetTime() + 1;
+            const std::vector<int>& neighbors = m_map->GetStop(agent->m_currentStop).children;
+            if (agent->m_targetStop == -1 && std::find(neighbors.begin(), neighbors.end(), order.targetStop) != neighbors.end())
+            {
+                agent->m_targetStop = order.targetStop;
+                agent->m_departureTime = m_state->GetTime();
+                agent->m_arrivalTime = m_state->GetTime() + 1;
+            }
         }
         break;
+
+    case Protocol::Order_Capture:
+        LogMessage("Capturing!");
+        break;
+
     }
     
 }
