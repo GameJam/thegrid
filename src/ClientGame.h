@@ -12,6 +12,7 @@
 #include "EntityTypeRegistry.h"
 #include "LanListener.h"
 #include "Particles.h"
+#include "NotificationLog.h"
 
 #include <bass.h>
 
@@ -122,9 +123,6 @@ private:
 
 private:
 
-    void AddNotificationParticle(Texture* texture, int x, int y);
-
-
     static const Protocol::Order kButtonToOrder[ButtonId_NumButtons];
 
     Server*             m_server;
@@ -171,10 +169,6 @@ private:
     Texture             m_titleTextTexture;
     Texture             m_titleBackgroundTexture;
     Texture             m_uiTexture;
-    Texture             m_notificationAgentLost;
-    Texture             m_notificationAgentCaptured;
-    Texture             m_notificationAgentSpotted;
-    Texture             m_notificationCrime;
 
     Button              m_button[ButtonId_NumButtons];
 
@@ -205,6 +199,7 @@ private:
 
     Particles           m_screenParticles;
     Particles           m_mapParticles;
+    NotificationLog     m_notificationLog;
 
 };
 
