@@ -87,38 +87,93 @@ void Map::Generate(int xSize, int ySize, int seed)
     const int maxLines = 8;
     int line = 0;
 
-    for (int x = 0; x < xNumTiles; ++x)
+    for (int i = 0; i < maxLines - 1; ++i)
     {
-        for (int y = 0; y < yNumTiles; ++y)
+
+        int r = random.Generate(0, xNumTiles * 2 + yNumTiles * 2);
+
+        int x = 0;
+        int y = 0;
+
+        if (r < xNumTiles)
         {
-
-            // Make terminals less likely towards the interior of the map
-
-            const int maxProb  = 30;
-            const int probStep = 15;
-
-            int xDist = Min(x, xNumTiles - 1 - x);
-            int yDist = Min(y, yNumTiles - 1 - y);
-            int prob  = Max(xDist, yDist) * probStep + maxProb;
-
-            if (random.Generate(0, 100) > prob && line < maxLines)
-            {
-                Vec2 point;
-                point.x = (float)(x * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
-                point.y = (float)(y * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
-                AddStop(point, line, true);
-                ++line;
-            }
-
+            x = r;
+            y = 0;
         }
+        else if (r < xNumTiles * 2)
+        {
+            x = r - xNumTiles;
+            y = yNumTiles - 1;
+        }
+        else if (r < xNumTiles * 2 + yNumTiles)
+        {
+            x = 0;
+            y = r - xNumTiles * 2;
+        }
+        else
+        {
+            x = xNumTiles - 1;
+            y = r - (xNumTiles * 2 + yNumTiles);
+        }
+
+        if (x >= xNumTiles) x = xNumTiles - 1;
+        if (y >= yNumTiles) y = yNumTiles - 1;
+
+        assert(x >= 0);
+        assert(y >= 0);
+
+        Vec2 point;
+        point.x = (float)(x * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
+        point.y = (float)(y * terminalSpacing + random.Generate(_minTerminalDist, terminalSpacing - _minTerminalDist));
+        AddStop(point, line, true);
+        ++line;
+
     }
 
+ 
     int numTerminals = m_numStops;
 
     for (int i = 0; i < numTerminals; ++i)
     {
         GenerateLine(xSize, ySize, i, random);
     }
+
+   // Create an additional line that circles the center of the city.
+
+    int xNumSteps = 2;
+    int yNumSteps = 2;
+    int lastStop = -1;
+    int firstStop = -1;
+
+    for (int i = 0; i < 16; ++i)
+    {
+
+        float x = cosf((i * 2 * 3.14159265f) / 15) * 2.0f;
+        float y = sinf((i * 2 * 3.14159265f) / 15) * 1.5f;
+
+        x += xNumTiles / 2;
+        y += yNumTiles / 2;
+
+        Vec2 point((x + 0.5f) * terminalSpacing, (y + 0.5f) * terminalSpacing);
+
+        point.x = floorf(point.x / 50.0f) * 50.0f;
+        point.y = floorf(point.y / 50.0f) * 50.0f;
+
+        int stop = MergeStop(point, line, 50.0f);
+
+        if (lastStop != -1)
+        {
+            Connect(lastStop, stop, line);
+        }
+        else
+        {
+            firstStop = stop;
+        }
+        lastStop = stop;
+        
+    }
+    Connect(lastStop, firstStop, line);
+
 
     // Initialize the stop children.
     for (int i = 0; i < m_numRails; ++i)

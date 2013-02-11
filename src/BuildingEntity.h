@@ -16,6 +16,7 @@ public:
 
     int             m_stop;
     bool            m_raided;
+    int             m_numIntels;
 
 };
 

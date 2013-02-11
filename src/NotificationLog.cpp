@@ -104,16 +104,17 @@ void NotificationLog::Draw()
 
 }
 
-void NotificationLog::OnMouseDown(int x, int y, int button)
+bool NotificationLog::OnMouseDown(int x, int y, int button, Vec2& location)
 {
     if (button == 1)
     {
         int entry = GetEntryUnderCursor(x, y);
         if (entry != -1)
         {
-            VisualizeNotification(m_entries[entry].packet);
+            return VisualizeNotification(m_entries[entry].packet, location);
         }
     }
+    return false;
 }
 
 void NotificationLog::OnMouseUp(int x, int y, int button)
@@ -142,6 +143,7 @@ void NotificationLog::LoadResources()
         { &m_notificationAgentSpotted,              "assets/notification_agent_spotted.png"     },
         { &m_notificationCrime,                     "assets/notification_crime.png"             },
         { &m_notificationBuildingDestroyed,         "assets/notification_building_destroyed.png" },
+        { &m_notificationIntelDetected,             "assets/notification_intelDetected.png"     },
     };
 
     int numTextures = sizeof(load) / sizeof(TextureLoad);
@@ -163,7 +165,8 @@ void NotificationLog::AddNotification(float time, const Protocol::NotificationPa
 
     LogEntry entry = { time, packet };
     m_entries.push_back(entry);
-    VisualizeNotification(packet);
+    Vec2 location;
+    VisualizeNotification(packet, location);
 
     if (m_entries.size() > kNumEntries)
     {
@@ -178,7 +181,7 @@ void NotificationLog::PlaySample(HSAMPLE sample)
     BASS_ChannelPlay(channel, true);
 }
 
-void NotificationLog::VisualizeNotification(const Protocol::NotificationPacket& packet)
+bool NotificationLog::VisualizeNotification(const Protocol::NotificationPacket& packet, Vec2& location)
 {
 
     switch (packet.notification)
@@ -187,6 +190,8 @@ void NotificationLog::VisualizeNotification(const Protocol::NotificationPacket& 
         {
             const Stop& stop = m_map->GetStop(packet.stop);        
             AddNotificationParticle(&m_notificationAgentCaptured, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+            location = stop.point;
+            return true;
         }
         break;
     case Protocol::Notification_AgentSpotted:
@@ -194,19 +199,25 @@ void NotificationLog::VisualizeNotification(const Protocol::NotificationPacket& 
             const Stop& stop = m_map->GetStop(packet.stop);        
             AddNotificationParticle(&m_notificationAgentSpotted, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
             PlaySample(m_soundSpotted);
+            location = stop.point;
+            return true;
         }
         break;
     case Protocol::Notification_CrimeDetected:
         {
             const Stop& stop = m_map->GetStop(packet.stop);
-            AddNotificationParticle(&m_notificationCrime, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));\
+            AddNotificationParticle(&m_notificationCrime, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
             PlaySample(m_soundCrime);
+            location = stop.point;
+            return true;
         }
         break;
     case Protocol::Notification_AgentLost:
         {
             const Stop& stop = m_map->GetStop(packet.stop);        
             AddNotificationParticle(&m_notificationAgentLost, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+            location = stop.point;
+            return true;
         }
         break;
     case Protocol::Notification_HouseDestroyed:
@@ -214,10 +225,22 @@ void NotificationLog::VisualizeNotification(const Protocol::NotificationPacket& 
             const Stop& stop = m_map->GetStop(packet.stop);        
             AddNotificationParticle(&m_notificationBuildingDestroyed, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
             PlaySample(m_soundDestroyed);
+            location = stop.point;
+            return true;
+        }
+        break;
+    case Protocol::Notification_IntelDetected:
+        {
+            const Stop& stop = m_map->GetStop(packet.stop);        
+            AddNotificationParticle(&m_notificationIntelDetected, static_cast<int>(stop.point.x), static_cast<int>(stop.point.y));
+            location = stop.point;
+            return true;
+
         }
         break;
     }
 
+    return false;
 }
 
 void NotificationLog::AddNotificationParticle(Texture* texture, int x, int y)

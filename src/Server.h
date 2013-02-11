@@ -36,7 +36,10 @@ public:
         void UpdateHackingStatus();
         void CheckForStakeout(AgentEntity* agent);
         void Infiltrate(AgentEntity* agent);
+        void TakeIntel(AgentEntity* agent);
+        void DropIntel(AgentEntity* agent);
         void NotifyCrime(int agentId, int stop);
+        PlayerEntity* GetPlayer();
 
         void UpdateCounts();
 
@@ -54,6 +57,14 @@ public:
         AgentList           m_agents;
         PlayerEntity*       m_player;
 
+    };
+
+    struct IntelData
+    {
+        int                 m_stop;
+        int                 m_owner;
+        int                 m_agentId;
+        bool                m_inHouse;
     };
 
     typedef std::vector<Client*> ClientList;
@@ -78,13 +89,20 @@ public:
 
     void NotifyCrime(int agentId, int stop);
 
+    int GetNumIntels() const;
+    IntelData& GetIntel(int intel);
+
 private:
     
     Client* FindClient(int peerId);
     void SendClientState(int peerId);
+    int GetIntelAtStop(int stop);
+    int PingIntel(int clientId, int lastPinged);
 
     typedef stdext::hash_map<int, Client*> ClientMap;
+    typedef std::vector<IntelData> IntelList;
 
+    Random              m_random;
     LanBroadcast        m_lanBroadcast;
     Host                m_host;
     ClientMap           m_clientMap;
@@ -94,6 +112,7 @@ private:
     float               m_time;
     float               m_timeSinceUpdate;
     float               m_timeSinceBroadcast;
+    IntelList           m_intelList;
 
     int                 m_mapSeed;
     int                 m_gridSpacing;

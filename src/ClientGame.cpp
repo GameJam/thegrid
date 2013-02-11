@@ -371,7 +371,7 @@ void ClientGame::Render()
                 {
                     Render_DrawSprite(m_agentStakeoutTexture, static_cast<int>(position.x) - m_agentStakeoutTexture.xSize / 2, static_cast<int>(position.y) - m_agentStakeoutTexture.ySize / 2);
                 }
-                else if (agent->m_hasIntel)
+                else if (agent->m_intel != -1)
                 {
                     Render_DrawSprite(m_agentIntelTexture, static_cast<int>(position.x) - m_agentIntelTexture.xSize / 2, static_cast<int>(position.y) - m_agentIntelTexture.ySize / 2);
                 }
@@ -524,24 +524,27 @@ void ClientGame::Render()
         Font_DrawText(m_isWinner ? "You WIN!" : "GAME OVER", 10, 10);
     }
 
+    Font_EndDrawing();
+
+
     // Tool tip.
 
     const char* toolTip = NULL;
     if (m_hoverButton == ButtonId_Capture)
     {
-        toolTip = "Search and capture any enemy agents at this location";
+        toolTip = "Search and capture any enemy agents\nat this location";
     }
     else if (m_hoverButton == ButtonId_Stakeout)
     {
-        toolTip = "Put the agent into stakeout mode so any enemy agents passing\nthrough the stop will be detected";
+        toolTip = "Put the agent into stakeout mode\nso any enemy agents passing through\nthe stop will be detected";
     }
     else if (m_hoverButton == ButtonId_Infiltrate)
     {
-        toolTip = "Search and infiltrate enemy safe houses at this location";
+        toolTip = "Search and infiltrate enemy safe\nhouses at this location";
     }
     else if (m_hoverButton == ButtonId_Hack)
     {
-        toolTip = "Hack the building to gather information";
+        toolTip = "Hack the building to gather\ninformation";
     }
     else if (m_hoverButton == ButtonId_Intel)
     {
@@ -549,11 +552,36 @@ void ClientGame::Render()
     }
     if (toolTip != NULL)
     {
-        Font_DrawText(toolTip, 400, m_ySize - yStatusBarSize + 20);
+        int xTipSize = 510;
+        int yTipSize = 120;
+        int xTip = 10;
+        int yTip = m_ySize - yStatusBarSize - yTipSize - 10;
+
+        glDisable(GL_TEXTURE_2D);
+        glColor(0xB0DBEDF7);
+        glLineWidth(1);
+        glBegin(GL_QUADS);
+        glVertex2i( xTip, yTip );   
+        glVertex2i( xTip + xTipSize, yTip );   
+        glVertex2i( xTip + xTipSize, yTip + yTipSize );   
+        glVertex2i( xTip, yTip + yTipSize );   
+        glEnd();
+
+        glColor(0xFF86DDEE);
+        glBegin(GL_LINE_LOOP);
+        glVertex2i( xTip, yTip );   
+        glVertex2i( xTip + xTipSize, yTip );   
+        glVertex2i( xTip + xTipSize, yTip + yTipSize );   
+        glVertex2i( xTip, yTip + yTipSize );   
+        glEnd();
+
+        glColor(0xFF000000);
+        Font_BeginDrawing(m_font);
+        Font_DrawText(toolTip, xTip + 10, yTip + 10);
+        Font_EndDrawing();
     }
 
 
-    Font_EndDrawing();
 
     glEnable(GL_TEXTURE_2D);
     glColor(0xFFFFFFFF);
@@ -576,7 +604,7 @@ void ClientGame::OnMouseDown(int x, int y, int button)
 
     if (m_gameState == GameState_MainMenu)
     {
-
+        return;
     }
     
     if (m_gameState != GameState_Playing)
@@ -584,7 +612,12 @@ void ClientGame::OnMouseDown(int x, int y, int button)
         return;
     }
 
-    m_notificationLog.OnMouseDown(x, y, button);
+    Vec2 location;
+    if (m_notificationLog.OnMouseDown(x, y, button, location))
+    {
+        CenterMap(location.x, location.y);
+        return;
+    }
 
     if (button == 1)
     {
@@ -799,7 +832,7 @@ void ClientGame::OnButtonPressed(ButtonId buttonId)
         PlaySample(m_soundAction);
         break;
     case ButtonId_Capture:
-        PlaySample(m_soundDeath);
+        PlaySample(m_soundAction);
         break;
     case ButtonId_Stakeout:
         PlaySample(m_soundAction);
@@ -1037,14 +1070,17 @@ void ClientGame::UpdateActiveButtons()
     if (structure == StructureType_House)
     {
         buttonEnabled[ButtonId_Hack] = false;
-        if (agent != NULL && !agent->m_hasIntel)
+        if (agent != NULL && agent->m_intel == -1)
         {
             buttonEnabled[ButtonId_Intel] = false;
         }
     }
     else
     {
-        buttonEnabled[ButtonId_Intel] = false;
+        if (agent != NULL && agent->m_intel != -1)
+        {
+            buttonEnabled[ButtonId_Intel] = false;
+        }
     }
 
     if (structure != StructureType_None && structure != StructureType_House)
