@@ -1126,10 +1126,6 @@ void ClientGame::UpdateActiveButtons()
     if (structure == StructureType_House)
     {
         buttonEnabled[ButtonId_Hack] = false;
-        if (agent != NULL && agent->m_intel == -1)
-        {
-            buttonEnabled[ButtonId_Intel] = false;
-        }
     }
     else
     {

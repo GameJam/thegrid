@@ -439,7 +439,7 @@ Server::Server()
     : m_host(1), 
       m_globalState(&m_typeRegistry)
 {
-    const int numIntels     = 3;
+    const int numIntels     = 5;
     const int gamePort      = 12345;
 
     m_random.Seed(SDL_GetTicks());
