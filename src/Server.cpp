@@ -38,10 +38,6 @@ Server::Client::Client(int id, Server& server)
 
         int stop = static_cast<int>(m_random.Generate(0, m_map->GetNumStops() - 1));
         agent->m_currentStop = stop;
-        if (agent->m_intel != -1)
-        {
-            m_server->GetIntel(agent->m_intel).m_stop = stop;
-        }
     }
 
     for (int i = 0; i < numSafeHouses; ++i)
@@ -105,6 +101,10 @@ void Server::Client::Update()
         {
             agent->m_currentStop = agent->m_targetStop;
             agent->m_targetStop = -1;
+            if (agent->m_intel != -1)
+            {
+                m_server->GetIntel(agent->m_intel).m_stop = agent->m_currentStop;
+            }
             CheckForStakeout(agent);
         }
 
@@ -265,18 +265,19 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
 
 void Server::Client::Infiltrate(AgentEntity* agent)
 {
-    // Check if there is a safe hosue at this stop.
+    // Check if there is a safe house at this stop.
 
     bool infiltrated = false;
     int stop = agent->m_currentStop;
+    int id = agent->GetOwnerId();
     int index = 0;
     BuildingEntity* structure;
     while (m_state->GetNextEntityWithType(index, structure))
     {
-        if (structure->m_stop == stop)
+        if (structure->m_stop == stop && structure->GetOwnerId() != id && !structure->m_raided)
         {
-            int id = agent->GetOwnerId();
             structure->m_raided = true;
+            structure->m_numIntels = 0;
             m_server->SendNotification(id, Protocol::Notification_HouseDestroyed, agent->GetId(), agent->m_currentStop, -1);
             m_server->SendNotification(structure->GetOwnerId(), Protocol::Notification_HouseDestroyed, agent->GetId(), agent->m_currentStop, -1);
             infiltrated = true;
@@ -285,7 +286,7 @@ void Server::Client::Infiltrate(AgentEntity* agent)
             for (int i = 0; i < m_server->GetNumIntels(); ++i)
             {
                 IntelData& intelData = m_server->GetIntel(i);
-                if (intelData.m_inHouse && intelData.m_stop == stop)
+                if (intelData.m_inHouse && intelData.m_stop == stop && intelData.m_owner != id)
                 {
                     intelData.m_owner = -1;
                     intelData.m_inHouse = false;
@@ -339,6 +340,7 @@ void Server::Client::DropIntel(AgentEntity* agent)
         {
             ++safeHouse->m_numIntels;
             IntelData& intelData = m_server->GetIntel(agent->m_intel);
+            assert(intelData.m_stop == agent->m_currentStop);
             intelData.m_inHouse = true;
             intelData.m_agentId = -1;
             agent->m_intel = -1;
