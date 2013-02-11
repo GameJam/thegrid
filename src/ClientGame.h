@@ -121,6 +121,8 @@ private:
 
     bool DoButton(const char* text, int x, int y, int xSize, int ySize) const;
 
+    void MoveAgent(int agentId, int stop);
+
 private:
 
     static const Protocol::Order kButtonToOrder[ButtonId_NumButtons];
@@ -203,6 +205,8 @@ private:
     Particles           m_mapParticles;
     NotificationLog     m_notificationLog;
 
+    int                 m_queuedMoveAgentId;
+    int                 m_queuedMoveStop;
 };
 
 #endif

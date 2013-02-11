@@ -45,12 +45,7 @@ private:
     int                     m_windowX;
     int                     m_windowY;
 
-    Texture                 m_notificationAgentLost;
-    Texture                 m_notificationAgentCaptured;
-    Texture                 m_notificationAgentSpotted;
-    Texture                 m_notificationCrime;
-    Texture                 m_notificationBuildingDestroyed;
-    Texture                 m_notificationIntelDetected;
+    Texture                 m_notificationTextures[Protocol::Notification_Count];
 
     HSAMPLE                 m_soundCrime;
     HSAMPLE                 m_soundSpotted;

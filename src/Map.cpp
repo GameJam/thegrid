@@ -423,6 +423,26 @@ int Map::GetStopForPoint(const Vec2& point)
     return -1;
 }
 
+int Map::GetNearestStopForPoint(const Vec2& point)
+{
+    int closestStop = -1;
+    float minDistanceSquared;
+
+    for (int i = 0; i < m_numStops; ++i)
+    {
+        Vec2 offset = m_stop[i].point - point;
+        float distanceSquared = DotProduct(offset, offset);
+        
+        if (closestStop == -1 || distanceSquared < minDistanceSquared)
+        {
+            closestStop = i;
+            minDistanceSquared = distanceSquared;
+        }
+    }
+
+    return closestStop;
+}
+
 int Map::GetLineBetween(int stopA, int stopB)
 {
     for (int i = 0 ; i < m_numRails; ++i)

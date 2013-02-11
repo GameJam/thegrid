@@ -70,6 +70,8 @@ ClientGame::ClientGame(int xSize, int ySize, bool playMusic)
     m_maxPlayersInGame = 0;
     m_gameOverTime = 0;
     m_isWinner = false;
+    m_queuedMoveAgentId = -1;
+    m_queuedMoveStop = -1;
     
     for (int i = 0; i < ButtonId_NumButtons; ++i)
     {
@@ -615,7 +617,7 @@ void ClientGame::OnMouseDown(int x, int y, int button)
     Vec2 location;
     if (m_notificationLog.OnMouseDown(x, y, button, location))
     {
-        CenterMap(location.x, location.y);
+        CenterMap(static_cast<int>(location.x), static_cast<int>(location.y));
         return;
     }
 
@@ -643,22 +645,23 @@ void ClientGame::OnMouseDown(int x, int y, int button)
             int xWorld, yWorld;
             ScreenToWorld(x, y, xWorld, yWorld);
 
-            int stopUnderCursor = m_map.GetStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
+
+            int stopUnderCursor = m_map.GetNearestStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
 
             if (agentUnderCursor == -1 && stopUnderCursor != -1)
             {
                 // Order to move to station
-                Protocol::OrderPacket order;
-                order.order = Protocol::Order_MoveTo;
-                order.agentId = m_selectedAgent;
-                order.targetStop = stopUnderCursor;
-                SendOrder(order);
-                // TODO: play in response from the server?
-                PlaySample(m_soundTrain);
+                MoveAgent(m_selectedAgent, stopUnderCursor);
             }
             else
             {
                 m_selectedAgent = agentUnderCursor;
+                if (m_selectedAgent != m_queuedMoveAgentId)
+                {
+                    // Cancel queued move
+                    m_queuedMoveAgentId = -1;
+                    m_queuedMoveStop = -1;
+                }
             }
 
             UpdateActiveButtons();
@@ -813,9 +816,9 @@ void ClientGame::OnMouseMove(int x, int y)
     {
         int xWorld, yWorld;
         ScreenToWorld(x, y, xWorld, yWorld);
-        if (GetAgentUnderCursor(x, y) == -1)
+        if (y < m_ySize - yStatusBarSize && GetAgentUnderCursor(x, y) == -1)
         {
-            m_hoverStop = m_map.GetStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
+            m_hoverStop = m_map.GetNearestStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
         }
         else
         {
@@ -929,6 +932,29 @@ void ClientGame::Update(float deltaTime)
             // Last one standing
             EndGame(true);
         }
+
+        // Handle queued move
+        if (m_queuedMoveAgentId != -1)
+        {
+            const Entity* entity = GetEntity(m_queuedMoveAgentId);
+            if (entity != NULL)
+            {
+                const AgentEntity* agent = entity->Cast<AgentEntity>();
+                if (agent->m_targetStop == -1)
+                {
+                    // Ready to move again!
+                    MoveAgent(m_queuedMoveAgentId, m_queuedMoveStop);
+                    m_queuedMoveAgentId = -1;
+                    m_queuedMoveStop = -1;
+                }
+            }
+            else
+            {
+                m_queuedMoveAgentId = -1;
+                m_queuedMoveStop = -1;
+            }
+        }
+
         break;
     }
     
@@ -1288,3 +1314,25 @@ bool ClientGame::DoButton(const char* text, int x, int y, int xSize, int ySize) 
     return true;
 }
 
+void ClientGame::MoveAgent(int agentId, int stop)
+{
+
+    const AgentEntity* agent = GetEntity(agentId)->Cast<AgentEntity>();
+    if (agent->m_targetStop == -1)
+    {
+        Protocol::OrderPacket order;
+        order.order = Protocol::Order_MoveTo;
+        order.agentId = agentId;
+        order.targetStop = stop;
+        SendOrder(order);
+        // TODO: play in response from the server?
+        PlaySample(m_soundTrain);
+    }
+    else
+    {
+        // Already moving, queue the click for when done
+        m_queuedMoveAgentId = agentId;
+        m_queuedMoveStop = stop;
+    }
+
+}

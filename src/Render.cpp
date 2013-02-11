@@ -52,3 +52,25 @@ void Render_DrawSprite(const Texture& texture, int x, int y)
     glEnd();
 
 }
+
+void Render_DrawSprite(const Texture& texture, int x, int y, int width, int height)
+{
+
+    glBindTexture( GL_TEXTURE_2D, texture.handle );
+    glBegin(GL_QUADS);
+
+    glTexCoord2f(0, 0);
+    glVertex2i(x, y);
+
+    glTexCoord2f(1, 0);
+    glVertex2i(x + width, y);
+
+    glTexCoord2f(1, 1);
+    glVertex2i(x + width, y + height);
+
+    glTexCoord2f(0, 1);
+    glVertex2i(x, y + height);
+
+    glEnd();
+
+}

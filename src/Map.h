@@ -47,6 +47,7 @@ public:
     const Rail& GetRail(int i) const { return m_rail[i]; }
 
     int GetStopForPoint(const Vec2& point);
+    int GetNearestStopForPoint(const Vec2& point);
 
     int GetLineBetween(int stopA, int stopB);
     unsigned long GetLineColor(int line);

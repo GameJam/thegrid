@@ -11,5 +11,6 @@ struct Texture;
 GLuint Render_CreateTexture(int xSize, int ySize, const void* buffer, int mipMap);
 
 void Render_DrawSprite(const Texture& texture, int x, int y);
+void Render_DrawSprite(const Texture& texture, int x, int y, int width, int height);
 
 #endif
