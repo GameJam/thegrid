@@ -127,6 +127,7 @@ private:
 
     static const Protocol::Order kButtonToOrder[ButtonId_NumButtons];
 
+
     Server*             m_server;
     LanListener         m_lanListener;
 
@@ -209,6 +210,8 @@ private:
     int                 m_queuedMoveStop;
 
     int                 m_totalNumIntels;
+    
+    float               m_timeAdjustment;
 };
 
 #endif

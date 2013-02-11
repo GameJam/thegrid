@@ -73,6 +73,7 @@ ClientGame::ClientGame(int xSize, int ySize, bool playMusic)
     m_queuedMoveAgentId = -1;
     m_queuedMoveStop = -1;
     m_totalNumIntels = 0;
+    m_timeAdjustment = 0;
     
     for (int i = 0; i < ButtonId_NumButtons; ++i)
     {
@@ -920,6 +921,18 @@ void ClientGame::Update(float deltaTime)
     m_mapParticles.Update(deltaTime);
 
     m_time += deltaTime;
+    const float kAdjustmentStep = 0.001f;
+    if (m_timeAdjustment > 0)
+    {
+        m_time += Min(kAdjustmentStep, m_timeAdjustment);
+        m_timeAdjustment = Max(m_timeAdjustment - kAdjustmentStep, 0.0f);
+    }
+    else if (m_timeAdjustment < 0)
+    {
+        m_time -= Max(kAdjustmentStep, m_timeAdjustment);
+        m_timeAdjustment = Min(m_timeAdjustment + kAdjustmentStep, 0.0f);
+    }
+
     m_host.Service(this);
     
     switch (m_gameState)
@@ -1019,6 +1032,14 @@ void ClientGame::OnPacket(int peerId, int channel, void* data, size_t size)
             {
                 Protocol::StatePacket* packet = static_cast<Protocol::StatePacket*>(data);
                 m_state.Deserialize(packet->data, packet->header.dataSize);
+                m_timeAdjustment = m_state.GetTime() - m_time;
+                if (fabsf(m_timeAdjustment) > 0.2f)
+                {
+                    // Snap time
+                    m_time = m_state.GetTime();
+                    m_timeAdjustment = 0;
+                    LogDebug("Snapping time");
+                }
             }
             break;
 
