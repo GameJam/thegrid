@@ -7,6 +7,7 @@
 
 #include <SDL.h>
 #include <algorithm>
+#include <time.h>
 
 static const float kServerTickRate      = 1.0f / 30.0f;
 static const float kServerBroadcastRate = 1.0f;
@@ -103,14 +104,16 @@ void Server::Client::Update()
 
     }
 
+    UpdateCounts();
+
     // Check for end game
-    if (m_agents.size() == 0)
+    if (m_agents.size() == 0 || m_player->m_numSafeHouses == 0)
     {
         m_player->m_eliminated = true;
     }
 
     UpdateHackingStatus();
-    UpdateCounts();
+
 
 }
 
@@ -342,7 +345,7 @@ Server::Server()
     m_time                  = 0;
     m_timeSinceUpdate       = 0;
     m_timeSinceBroadcast    = 0;
-    m_mapSeed               = 42;
+    m_mapSeed               = time(NULL);
     m_gridSpacing           = 150;
     m_xMapSize              = m_gridSpacing * 9;
     m_yMapSize              = m_gridSpacing * 6;

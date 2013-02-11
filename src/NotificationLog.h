@@ -15,10 +15,10 @@ class NotificationLog
 {
 public:
 
-    NotificationLog(Map* map, Particles* mapParticles, Font* font);
+    NotificationLog(Map* map, Particles* mapParticles, Font* font, int xSize, int ySize);
     ~NotificationLog();
 
-    void Draw(int xSize, int ySize);
+    void Draw();
     void OnMouseDown(int x, int y, int button);
     void OnMouseUp(int x, int y, int button);
     void OnMouseMove(int x, int y);
@@ -32,6 +32,7 @@ private:
 
     void VisualizeNotification(const Protocol::NotificationPacket& packet);   
     void AddNotificationParticle(Texture* texture, int x, int y);
+    int GetEntryUnderCursor(int x, int y);
 
     struct LogEntry
     {
@@ -40,6 +41,9 @@ private:
     };
 
     Font*                   m_font;
+
+    int                     m_windowX;
+    int                     m_windowY;
 
     Texture                 m_notificationAgentLost;
     Texture                 m_notificationAgentCaptured;
@@ -54,6 +58,9 @@ private:
     Map*                    m_map;
     Particles*              m_mapParticles;
     std::vector<LogEntry>   m_entries;
+    int                     m_activeEntry;
+    int                     m_rowHeight;
+    int                     m_firstEntry;
 };
 
 #endif
