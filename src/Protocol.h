@@ -46,6 +46,7 @@ struct InitializeGamePacket
     int         gridSpacing;
     int         xMapSize;
     int         yMapSize;
+    int         totalNumIntels;
 };
 
 struct OrderPacket

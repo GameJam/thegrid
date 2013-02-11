@@ -281,13 +281,14 @@ void Server::Client::Infiltrate(AgentEntity* agent)
             m_server->SendNotification(structure->GetOwnerId(), Protocol::Notification_HouseDestroyed, agent->GetId(), agent->m_currentStop, -1);
             infiltrated = true;
 
-            // Take ownership of the intel
+            // Re-drop intel
             for (int i = 0; i < m_server->GetNumIntels(); ++i)
             {
                 IntelData& intelData = m_server->GetIntel(i);
                 if (intelData.m_inHouse && intelData.m_stop == stop)
                 {
-                    intelData.m_owner = m_id;
+                    intelData.m_owner = -1;
+                    intelData.m_inHouse = false;
                 }
             }
             break;
@@ -438,7 +439,7 @@ Server::Server()
     : m_host(1), 
       m_globalState(&m_typeRegistry)
 {
-    const int numIntels     = 5;
+    const int numIntels     = 3;
     const int gamePort      = 12345;
 
     m_random.Seed(SDL_GetTicks());
@@ -574,6 +575,7 @@ void Server::OnConnect(int peerId)
     initializeGame.gridSpacing  = m_gridSpacing;
     initializeGame.xMapSize     = m_xMapSize;
     initializeGame.yMapSize     = m_yMapSize;
+    initializeGame.totalNumIntels    = static_cast<int>(m_intelList.size());
     
     m_host.SendPacket(peerId, 0, &initializeGame, sizeof(Protocol::InitializeGamePacket));
 }

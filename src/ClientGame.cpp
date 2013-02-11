@@ -72,6 +72,7 @@ ClientGame::ClientGame(int xSize, int ySize, bool playMusic)
     m_isWinner = false;
     m_queuedMoveAgentId = -1;
     m_queuedMoveStop = -1;
+    m_totalNumIntels = 0;
     
     for (int i = 0; i < ButtonId_NumButtons; ++i)
     {
@@ -480,6 +481,11 @@ void ClientGame::Render()
 
     glEnable(GL_TEXTURE_2D);
     glColor(0xFFFFFFFF);
+
+    const int scaledAgentWidth = (m_agentTexture.xSize * fontHeight) / m_agentTexture.ySize;
+    const int scaledHouseWidth = (m_buildingHouseTexture.xSize * fontHeight) / m_buildingHouseTexture.ySize;
+    const int scaledIntelWidth = (m_intelTexture.xSize * fontHeight) / m_intelTexture.ySize;
+
     for (int i = 0; i < numPlayers; ++i)
     {
         Render_DrawSprite(m_playerPortraitTexture, m_xSize - 290, 20 + (playerBoxHeight + 15) * i);
@@ -500,6 +506,10 @@ void ClientGame::Render()
             Render_DrawSprite(m_playerPoliceHackedTexture, m_xSize - m_playerPortraitTexture.xSize - 60 + offset, 20 + (playerBoxHeight + 15) * i + 90 - m_playerPoliceHackedTexture.ySize);
             offset += m_playerPoliceHackedTexture.xSize;
         }
+        
+        Render_DrawSprite(m_agentTexture, m_xSize - 280, playerBoxHeight - 25 +(playerBoxHeight + 15) * i, scaledAgentWidth, fontHeight);
+        Render_DrawSprite(m_buildingHouseTexture, m_xSize - 180, playerBoxHeight - 25 +(playerBoxHeight + 15) * i, scaledHouseWidth, fontHeight);
+        Render_DrawSprite(m_intelTexture, m_xSize - 80, playerBoxHeight - 25 +(playerBoxHeight + 15) * i, scaledIntelWidth, fontHeight);
     }
 
     Font_BeginDrawing(m_font);
@@ -511,12 +521,23 @@ void ClientGame::Render()
             m_xSize - m_playerPortraitTexture.xSize - 60,
             20 + (playerBoxHeight + 15) * i);
 
-        char buffer[256];
-        sprintf(buffer, "%d Agents %d Houses", player[i]->m_numAgents, player[i]->m_numSafeHouses);
+        char buffer[32];
+        sprintf(buffer, "x%d", player[i]->m_numAgents);
 
         Font_DrawText(buffer,
-            m_xSize - 290,
-            playerBoxHeight - 30 + (playerBoxHeight + 15) * i);
+            m_xSize - 280 + scaledAgentWidth + 5,
+            playerBoxHeight - 25 + (playerBoxHeight + 15) * i);
+
+
+        sprintf(buffer, "x%d", player[i]->m_numSafeHouses);
+        Font_DrawText(buffer,
+            m_xSize - 180 + scaledHouseWidth + 5,
+            playerBoxHeight - 25 + (playerBoxHeight + 15) * i);
+
+        sprintf(buffer, "x%d", player[i]->m_numIntels);
+        Font_DrawText(buffer,
+            m_xSize - 80 + scaledHouseWidth + 5,
+            playerBoxHeight - 25 + (playerBoxHeight + 15) * i);
     }
 
     glColor(0xFF000000);
@@ -908,6 +929,13 @@ void ClientGame::Update(float deltaTime)
         UpdateActiveButtons();
 
         // Check for end game
+        const PlayerEntity* localPlayer = GetLocalPlayer();
+        if (localPlayer != NULL && !localPlayer->m_eliminated && localPlayer->m_numIntels == m_totalNumIntels)
+        {
+            EndGame(true);
+            return;
+        }
+
         int numActivePlayers = 0;
         int index = 0;
         const PlayerEntity* player;
@@ -922,7 +950,7 @@ void ClientGame::Update(float deltaTime)
             {
                 // We're out!
                 EndGame(false);
-                break;
+                return;
             }
         }
         
@@ -931,6 +959,7 @@ void ClientGame::Update(float deltaTime)
         {
             // Last one standing
             EndGame(true);
+            return;
         }
 
         // Handle queued move
@@ -1028,6 +1057,7 @@ void ClientGame::OnInitializeGame(Protocol::InitializeGamePacket& packet)
     m_xMapSize = packet.xMapSize;
     m_yMapSize = packet.yMapSize;
     m_gridSpacing = packet.gridSpacing;
+    m_totalNumIntels = packet.totalNumIntels;
     m_map.Generate(m_xMapSize, m_yMapSize, packet.mapSeed);
     CenterMap(m_xMapSize / 2, m_yMapSize / 2);
 
@@ -1090,7 +1120,7 @@ void ClientGame::UpdateActiveButtons()
     bool buttonEnabled[ButtonId_NumButtons];
     for (int i = 0; i < ButtonId_NumButtons; ++i)
     {
-        buttonEnabled[i] = selection;
+        buttonEnabled[i] = selection && agent->m_targetStop == -1;
     }
 
     if (structure == StructureType_House)
@@ -1317,7 +1347,18 @@ bool ClientGame::DoButton(const char* text, int x, int y, int xSize, int ySize) 
 void ClientGame::MoveAgent(int agentId, int stop)
 {
 
-    const AgentEntity* agent = GetEntity(agentId)->Cast<AgentEntity>();
+    if (agentId == -1 || stop == -1)
+    {
+        return;
+    }
+
+    const Entity* entity = GetEntity(agentId);
+    if (entity == NULL)
+    {
+        return;
+    }
+
+    const AgentEntity* agent = entity->Cast<AgentEntity>();
     if (agent->m_targetStop == -1)
     {
         Protocol::OrderPacket order;

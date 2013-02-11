@@ -207,6 +207,8 @@ private:
 
     int                 m_queuedMoveAgentId;
     int                 m_queuedMoveStop;
+
+    int                 m_totalNumIntels;
 };
 
 #endif
