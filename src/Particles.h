@@ -10,6 +10,8 @@ struct Texture;
 
 typedef bool (*UpdateFunction)(Particle& particle, float deltaTime);
 
+const int kMaxParticleUserData = 32;
+
 struct Particle
 {
     float           time;
@@ -17,6 +19,7 @@ struct Particle
     Vec2            scale;
     float           rotation;
     unsigned long   color;
+    char            userData[kMaxParticleUserData];
 
     Texture*        texture;
     UpdateFunction  updateFunction;
@@ -30,6 +33,7 @@ public:
     void Draw() const;
     Particle* Add();
     void Update(float deltaTime);
+    int GetNumParticles() const;
 
 private:
     std::vector<Particle> m_particles;

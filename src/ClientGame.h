@@ -13,6 +13,7 @@
 #include "LanListener.h"
 #include "Particles.h"
 #include "NotificationLog.h"
+#include "Random.h"
 
 #include <bass.h>
 
@@ -130,6 +131,7 @@ private:
 
     Server*             m_server;
     LanListener         m_lanListener;
+    Random              m_random;
 
     float               m_time;
     int                 m_clientId;

@@ -8,6 +8,8 @@
 #include "UI.h"
 #include "Server.h"
 
+#include <SDL.h>
+
 #include <math.h>
 #include <assert.h>
 
@@ -22,6 +24,33 @@ const Protocol::Order ClientGame::kButtonToOrder[ButtonId_NumButtons] =
     Protocol::Order_Hack,
     Protocol::Order_Intel
 };
+
+
+struct PhysicsData
+{
+    Vec2 velocity;
+    Vec2 acceleration;
+    float anglularVelocity;
+    float maxTime;
+};
+
+static bool ParticlePhysicsFunc(Particle& particle, float deltaTime)
+{
+    PhysicsData& data = reinterpret_cast<PhysicsData&>(*particle.userData);
+
+    particle.time += deltaTime;
+    particle.position = particle.position + deltaTime * data.velocity;
+    particle.rotation += deltaTime * data.anglularVelocity;
+    data.velocity = data.velocity + deltaTime * data.acceleration;
+
+    float timeLeft = data.maxTime - particle.time;
+    if (timeLeft < 1)
+    {
+        particle.color = (particle.color & 0xffffff) | (Clamp(static_cast<int>(0xff*timeLeft), 0, 0xff) << 24);
+    }
+
+    return timeLeft > 0;
+}
 
 static float EaseInOutQuad(float t, float b, float c, float d) 
 {
@@ -91,6 +120,7 @@ ClientGame::ClientGame(int xSize, int ySize, bool playMusic)
 
     m_lanListener.Initialize(Protocol::listenPort);
 
+    m_random.Seed(SDL_GetTicks());
 }
 
 ClientGame::~ClientGame()
@@ -555,12 +585,6 @@ void ClientGame::Render()
     }
 
     glColor(0xFF000000);
-    
-    if (m_gameState == GameState_GameOver)
-    {
-        Font_DrawText(m_isWinner ? "You WIN!" : "GAME OVER", 10, 10);
-    }
-
     Font_EndDrawing();
 
 
@@ -634,6 +658,55 @@ void ClientGame::Render()
 
     m_screenParticles.Draw();
 
+    if (m_gameState == GameState_GameOver)
+    {
+        
+        const int windowWidth = 200;
+        const int widonwHeight = 100;
+        
+
+        glDisable(GL_TEXTURE_2D);
+        glColor(0xB0DBEDF7);
+        glLineWidth(1);
+        glBegin(GL_QUADS);
+
+        glVertex2i( (m_xSize - windowWidth) / 2, 
+                    (m_ySize - widonwHeight) / 2 );   
+        glVertex2i( (m_xSize + windowWidth) / 2, 
+                    (m_ySize - widonwHeight) / 2 );   
+        glVertex2i( (m_xSize + windowWidth) / 2, 
+                    (m_ySize + widonwHeight) / 2 );   
+        glVertex2i( (m_xSize - windowWidth) / 2, 
+                    (m_ySize + widonwHeight) / 2 );   
+        glEnd();
+
+
+        glColor(0xFF86DDEE);
+        glBegin(GL_LINE_LOOP);
+
+        glVertex2i( (m_xSize - windowWidth) / 2, 
+                    (m_ySize - widonwHeight) / 2 );   
+        glVertex2i( (m_xSize + windowWidth) / 2, 
+                    (m_ySize - widonwHeight) / 2 );   
+        glVertex2i( (m_xSize + windowWidth) / 2, 
+                    (m_ySize + widonwHeight) / 2 );   
+        glVertex2i( (m_xSize - windowWidth) / 2, 
+                    (m_ySize + widonwHeight) / 2 );   
+        glEnd();
+
+        glEnable(GL_TEXTURE_2D);
+
+        Font_BeginDrawing(m_font);
+        const char* text = m_isWinner ? "You WIN!" : "GAME OVER";
+        glColor(0xff000000);
+
+        int textWidth = Font_GetTextWidth(m_font, text);
+        Font_DrawText(text, (m_xSize - textWidth)/2, (m_ySize - fontHeight)/2);
+
+        Font_EndDrawing();
+    }
+
+
 }
 
 void ClientGame::OnMouseDown(int x, int y, int button)
@@ -683,7 +756,7 @@ void ClientGame::OnMouseDown(int x, int y, int button)
 
             int stopUnderCursor = m_map.GetNearestStopForPoint( Vec2(static_cast<float>(xWorld), static_cast<float>(yWorld)) );
 
-            if (agentUnderCursor == -1 && stopUnderCursor != -1)
+            if (agentUnderCursor == -1 && stopUnderCursor != -1 && m_selectedAgent != -1)
             {
                 int fromStop = GetEntity(m_selectedAgent)->Cast<AgentEntity>()->m_currentStop;
                 m_pathLength = m_map.GetPath(fromStop, stopUnderCursor, m_path);
@@ -1018,6 +1091,24 @@ void ClientGame::Update(float deltaTime)
         }
 
         break;
+    }
+
+    if (m_gameState == GameState_GameOver && m_isWinner)
+    {
+        // Time for some silliness!
+        Particle* p = m_screenParticles.Add();
+        p->texture = &m_agentTexture;
+        p->updateFunction = ParticlePhysicsFunc;
+        p->color = 0xff000000 | m_random.Generate(0, 0xffffff);
+        p->position = Vec2(m_xSize / 2 + m_random.Generate(-200, 200), m_ySize + m_agentTexture.ySize);
+        p->rotation = 0;
+        p->scale = Vec2(1, 1);
+        PhysicsData* data = reinterpret_cast<PhysicsData*>(p->userData);
+
+        float angle = kPi * m_random.Generate(-45, 45) / 180.0f;
+        data->velocity = static_cast<float>(m_random.Generate(300, 800)) * Vec2(sinf(angle), -cosf(angle));
+        data->acceleration = Vec2(0, 100);
+        data->maxTime = static_cast<float>(m_random.Generate(5, 20));
     }
     
 }

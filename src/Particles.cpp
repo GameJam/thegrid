@@ -58,3 +58,8 @@ void Particles::Update(float deltaTime)
     m_particles.resize(lastActive + 1);
 
 }
+
+int Particles::GetNumParticles() const
+{
+    return static_cast<int>(m_particles.size());
+}
