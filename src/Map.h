@@ -36,6 +36,10 @@ class Map
 
 public:
 
+    static const int s_maxStops = 500;
+    static const int s_maxRails = 1500;
+    static const int s_maxRiverVertices = 100;
+
     Map();
 
     void Generate(int xSize, int ySize, int seed);
@@ -52,6 +56,8 @@ public:
     int GetLineBetween(int stopA, int stopB);
     unsigned long GetLineColor(int line);
 
+    int GetPath(int stopA, int stopB, int path[]);
+
 private:
 
     int  AddStop(const Vec2& point, int line, bool terminal = false);
@@ -67,10 +73,6 @@ private:
     void PlaceStructures(StructureType structureType, int number, Random& random);
 
 private:
-
-    static const int s_maxStops = 500;
-    static const int s_maxRails = 1500;
-    static const int s_maxRiverVertices = 100;
 
     int     m_numStops;
     Stop    m_stop[s_maxStops];

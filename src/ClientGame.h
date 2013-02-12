@@ -206,12 +206,13 @@ private:
     Particles           m_mapParticles;
     NotificationLog     m_notificationLog;
 
-    int                 m_queuedMoveAgentId;
-    int                 m_queuedMoveStop;
-
     int                 m_totalNumIntels;
     
     float               m_timeAdjustment;
+    
+    int                 m_path[Map::s_maxStops];
+    int                 m_pathLength;
+    int                 m_nextStop;
 };
 
 #endif

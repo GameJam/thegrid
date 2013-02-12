@@ -7,6 +7,7 @@
 #include <math.h>
 #include <malloc.h>
 #include <memory.h>
+#include <set>
 
 const float pi = 3.1415926535f;
 
@@ -466,5 +467,104 @@ unsigned long Map::GetLineColor(int line)
     }
 
     return kLineColor[line % kNumLines];
+
+}
+
+int Map::GetPath(int stopA, int stopB, int path[])
+{
+    struct Node
+    {
+        int distance;
+        bool visited;
+        int next;
+    };
+
+    if (stopA == stopB)
+    {
+        path[0] = stopA;
+        return 1;
+    }
+
+    Node nodes[s_maxStops];
+
+    int unvisited[s_maxStops];
+    int numUnvisited = 0;
+
+    // Setup
+    for (int i = 0; i < m_numStops; ++i)
+    {
+        if (i == stopB)
+        {
+            nodes[i].distance = 0;
+        }
+        else
+        {
+            nodes[i].distance = -1;
+            unvisited[numUnvisited] = i;
+            ++numUnvisited;
+        }
+        nodes[i].visited = false;
+        nodes[i].next = -1;        
+    }
+
+    int current = stopB;
+
+    // Dijkstra's algorithm
+    while(true)
+    {
+        int distance = nodes[current].distance + 1;
+        for (size_t i = 0; i < m_stop[current].children.size(); ++i)
+        {
+            int neighbor = m_stop[current].children[i];
+            if (!nodes[neighbor].visited && (nodes[neighbor].distance == -1 || distance < nodes[neighbor].distance))
+            {
+                nodes[neighbor].distance = distance;
+                nodes[neighbor].next = current;
+            }
+        }
+        nodes[current].visited = true;
+
+        // Find nearest unvisited
+        int nearestIndex = -1;
+        int nearestDistance;
+        for (int i = 1; i < numUnvisited; ++i)
+        {
+            distance = nodes[unvisited[i]].distance;
+            if (distance != -1 && (nearestIndex == -1 || distance < nearestDistance))
+            {
+                nearestIndex = i;
+                nearestDistance = distance;
+            }
+        }
+        
+        if (nearestIndex == -1)
+        {
+            // No path!
+            return 0;
+        }
+
+        current = unvisited[nearestIndex];
+        if (current == stopA)
+        {
+            break;
+        }
+
+        unvisited[nearestIndex] = unvisited[numUnvisited-1];
+        --numUnvisited;
+    }
+
+    // Build path
+    int pathLength = 0;
+    while (current != stopB)
+    {
+        path[pathLength] = current;
+        ++pathLength;
+        current = nodes[current].next;
+        assert(current != -1);
+    }
+    path[pathLength] = stopB;
+    ++pathLength;
+
+    return pathLength;
 
 }

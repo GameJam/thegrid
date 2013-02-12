@@ -14,7 +14,6 @@
 const int yStatusBarSize    = 140;
 const float kPi = 3.14159265359f;
 
-
 const Protocol::Order ClientGame::kButtonToOrder[ButtonId_NumButtons] = 
 {
     Protocol::Order_Capture,
@@ -52,30 +51,30 @@ ClientGame::ClientGame(int xSize, int ySize, bool playMusic)
       m_notificationLog(&m_map, &m_mapParticles, &m_font, xSize, ySize)
 {
 
-    m_server        = NULL;
-    m_time          = 0;
-    m_clientId      = -1;
-    m_gameState     = GameState_MainMenu;
-    m_mapScale      = 1;
-    m_xSize         = xSize;
-    m_ySize         = ySize;
-    m_mapState      = State_Idle;
-    m_blipX         = 0;
-    m_blipY         = 0;
-    m_serverId      = -1;
-    m_hoverStop     = -1;
-    m_hoverButton   = ButtonId_None;
-    m_xMapSize      = 0;
-    m_yMapSize      = 0;
-    m_gridSpacing   = 0;
-    m_selectedAgent = -1;
-    m_maxPlayersInGame = 0;
-    m_gameOverTime = 0;
-    m_isWinner = false;
-    m_queuedMoveAgentId = -1;
-    m_queuedMoveStop = -1;
-    m_totalNumIntels = 0;
-    m_timeAdjustment = 0;
+    m_server            = NULL;
+    m_time              = 0;
+    m_clientId          = -1;
+    m_gameState         = GameState_MainMenu;
+    m_mapScale          = 1;
+    m_xSize             = xSize;
+    m_ySize             = ySize;
+    m_mapState          = State_Idle;
+    m_blipX             = 0;
+    m_blipY             = 0;
+    m_serverId          = -1;
+    m_hoverStop         = -1;
+    m_hoverButton       = ButtonId_None;
+    m_xMapSize          = 0;
+    m_yMapSize          = 0;
+    m_gridSpacing       = 0;
+    m_selectedAgent     = -1;
+    m_maxPlayersInGame  = 0;
+    m_gameOverTime      = 0;
+    m_isWinner          = false;
+    m_totalNumIntels    = 0;
+    m_timeAdjustment    = 0;
+    m_pathLength        = 0;
+    m_nextStop          = -1;
     
     for (int i = 0; i < ButtonId_NumButtons; ++i)
     {
@@ -374,7 +373,7 @@ void ClientGame::Render()
     const AgentEntity* agent;
     while (m_state.GetNextEntityWithType(index, agent))
     {
-        if (m_selectedAgent == agent->GetId() && agent->m_targetStop == -1)
+        if (m_selectedAgent == agent->GetId() && m_pathLength == 0)
         {
             glColor(blinkColor);
         }
@@ -686,18 +685,23 @@ void ClientGame::OnMouseDown(int x, int y, int button)
 
             if (agentUnderCursor == -1 && stopUnderCursor != -1)
             {
-                // Order to move to station
-                MoveAgent(m_selectedAgent, stopUnderCursor);
+                int fromStop = GetEntity(m_selectedAgent)->Cast<AgentEntity>()->m_currentStop;
+                m_pathLength = m_map.GetPath(fromStop, stopUnderCursor, m_path);
+                if (m_pathLength > 1)
+                {
+                    m_nextStop = 0;
+                }
+                else
+                {
+                    m_pathLength = 0;
+                    m_nextStop = -1;
+                }
             }
-            else
+            else if (m_selectedAgent != agentUnderCursor)
             {
                 m_selectedAgent = agentUnderCursor;
-                if (m_selectedAgent != m_queuedMoveAgentId)
-                {
-                    // Cancel queued move
-                    m_queuedMoveAgentId = -1;
-                    m_queuedMoveStop = -1;
-                }
+                m_pathLength = 0;
+                m_nextStop = -1;
             }
 
             UpdateActiveButtons();
@@ -989,25 +993,27 @@ void ClientGame::Update(float deltaTime)
             return;
         }
 
-        // Handle queued move
-        if (m_queuedMoveAgentId != -1)
+        // Handle movement
+        if (m_pathLength > 0)
         {
-            const Entity* entity = GetEntity(m_queuedMoveAgentId);
+            const Entity* entity = GetEntity(m_selectedAgent);
             if (entity != NULL)
             {
                 const AgentEntity* agent = entity->Cast<AgentEntity>();
-                if (agent->m_targetStop == -1)
+                if (agent->m_targetStop == -1 && agent->m_currentStop == m_path[m_nextStop])
                 {
                     // Ready to move again!
-                    MoveAgent(m_queuedMoveAgentId, m_queuedMoveStop);
-                    m_queuedMoveAgentId = -1;
-                    m_queuedMoveStop = -1;
+                    ++m_nextStop;
+                    if (m_nextStop < m_pathLength)
+                    {
+                        MoveAgent(m_selectedAgent, m_path[m_nextStop]);
+                    }
+                    else
+                    {
+                        m_pathLength = 0;
+                        m_nextStop = -1;
+                    }
                 }
-            }
-            else
-            {
-                m_queuedMoveAgentId = -1;
-                m_queuedMoveStop = -1;
             }
         }
 
@@ -1155,7 +1161,7 @@ void ClientGame::UpdateActiveButtons()
     bool buttonEnabled[ButtonId_NumButtons];
     for (int i = 0; i < ButtonId_NumButtons; ++i)
     {
-        buttonEnabled[i] = selection && agent->m_targetStop == -1;
+        buttonEnabled[i] = selection && m_pathLength == 0;
     }
 
     if (structure == StructureType_House)
@@ -1399,12 +1405,6 @@ void ClientGame::MoveAgent(int agentId, int stop)
         SendOrder(order);
         // TODO: play in response from the server?
         PlaySample(m_soundTrain);
-    }
-    else
-    {
-        // Already moving, queue the click for when done
-        m_queuedMoveAgentId = agentId;
-        m_queuedMoveStop = stop;
     }
 
 }
