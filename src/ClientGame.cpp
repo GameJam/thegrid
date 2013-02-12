@@ -1101,13 +1101,14 @@ void ClientGame::Update(float deltaTime)
         p->updateFunction = ParticlePhysicsFunc;
         p->color = 0xff000000 | m_random.Generate(0, 0xffffff);
         p->position = Vec2(m_xSize / 2 + m_random.Generate(-200, 200), m_ySize + m_agentTexture.ySize);
-        p->rotation = 0;
+        p->rotation = static_cast<float>(m_random.Generate(0, 360));
         p->scale = Vec2(1, 1);
         PhysicsData* data = reinterpret_cast<PhysicsData*>(p->userData);
 
         float angle = kPi * m_random.Generate(-45, 45) / 180.0f;
         data->velocity = static_cast<float>(m_random.Generate(300, 800)) * Vec2(sinf(angle), -cosf(angle));
         data->acceleration = Vec2(0, 100);
+        data->anglularVelocity = static_cast<float>(m_random.Generate(-500, 500));
         data->maxTime = static_cast<float>(m_random.Generate(5, 20));
     }
     
