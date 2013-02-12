@@ -12,6 +12,8 @@
 #include <assert.h>
 
 const int yStatusBarSize    = 140;
+const float kPi = 3.14159265359f;
+
 
 const Protocol::Order ClientGame::kButtonToOrder[ButtonId_NumButtons] = 
 {
@@ -355,36 +357,48 @@ void ClientGame::Render()
 
 
     glEnable(GL_TEXTURE_2D);    
-    glColor(0xFFFFFFFF);
 
-    // Entities
-    for (int i = 0; i < m_state.GetNumEntities(); ++i)
+    // DL: How about blinking for showing selection?
+    const float kBlinkDuration = 0.2f;
+    const float kBlinkCycleDuration = 1.0f;
+    float blinkT = fmodf(m_time, kBlinkCycleDuration);
+    float blinkAlpha = 1.0f;
+    if (blinkT < kBlinkDuration)
     {
-        const Entity* entity = m_state.GetEntity(i);
-        switch (entity->GetTypeId())
+        blinkAlpha = (cosf(2.0f*kPi*blinkT/kBlinkDuration)+1.0f)/2.0f;
+    }
+    unsigned long blinkColor = (static_cast<int>(blinkAlpha*255.0f) << 24) | 0xffffff;
+    
+    // Entities
+    int index = 0;
+    const AgentEntity* agent;
+    while (m_state.GetNextEntityWithType(index, agent))
+    {
+        if (m_selectedAgent == agent->GetId() && agent->m_targetStop == -1)
         {
-        case EntityTypeId_Agent:
-            {
-                const AgentEntity* agent = static_cast<const AgentEntity*>(entity);
-                Vec2 position = GetAgentPosition(agent);
-                if (agent->m_state == AgentEntity::State_Hacking)
-                {
-                    Render_DrawSprite(m_agentHackingTexture, static_cast<int>(position.x) - m_agentHackingTexture.xSize / 2, static_cast<int>(position.y) - m_agentHackingTexture.ySize / 2);
-                }
-                else if (agent->m_state == AgentEntity::State_Stakeout)
-                {
-                    Render_DrawSprite(m_agentStakeoutTexture, static_cast<int>(position.x) - m_agentStakeoutTexture.xSize / 2, static_cast<int>(position.y) - m_agentStakeoutTexture.ySize / 2);
-                }
-                else if (agent->m_intel != -1)
-                {
-                    Render_DrawSprite(m_agentIntelTexture, static_cast<int>(position.x) - m_agentIntelTexture.xSize / 2, static_cast<int>(position.y) - m_agentIntelTexture.ySize / 2);
-                }
-                else
-                {
-                    Render_DrawSprite(m_agentTexture, static_cast<int>(position.x) - m_agentTexture.xSize / 2, static_cast<int>(position.y) - m_agentTexture.ySize / 2);
-                }
-            }
-            break;
+            glColor(blinkColor);
+        }
+        else
+        {
+            glColor(0xFFFFFFFF);
+        }
+
+        Vec2 position = GetAgentPosition(agent);
+        if (agent->m_state == AgentEntity::State_Hacking)
+        {
+            Render_DrawSprite(m_agentHackingTexture, static_cast<int>(position.x) - m_agentHackingTexture.xSize / 2, static_cast<int>(position.y) - m_agentHackingTexture.ySize / 2);
+        }
+        else if (agent->m_state == AgentEntity::State_Stakeout)
+        {
+            Render_DrawSprite(m_agentStakeoutTexture, static_cast<int>(position.x) - m_agentStakeoutTexture.xSize / 2, static_cast<int>(position.y) - m_agentStakeoutTexture.ySize / 2);
+        }
+        else if (agent->m_intel != -1)
+        {
+            Render_DrawSprite(m_agentIntelTexture, static_cast<int>(position.x) - m_agentIntelTexture.xSize / 2, static_cast<int>(position.y) - m_agentIntelTexture.ySize / 2);
+        }
+        else
+        {
+            Render_DrawSprite(m_agentTexture, static_cast<int>(position.x) - m_agentTexture.xSize / 2, static_cast<int>(position.y) - m_agentTexture.ySize / 2);
         }
     }
 
