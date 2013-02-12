@@ -188,29 +188,39 @@ void Server::Client::OnOrder(const Protocol::OrderPacket& order)
         break;
 
     case Protocol::Order_Capture:
-        for (int i = 0; i < m_state->GetNumEntities(); ++i)
         {
-            Entity* entity = m_state->GetEntity(i);
-            if (entity->GetTypeId() == EntityTypeId_Agent && entity->GetOwnerId() != m_id)
+            bool agentCaptured = false;
+
+            for (int i = 0; i < m_state->GetNumEntities(); ++i)
             {
-                AgentEntity* capturedAgent = static_cast<AgentEntity*>(entity);
-                if (capturedAgent->m_currentStop == agent->m_currentStop)
+                Entity* entity = m_state->GetEntity(i);
+                if (entity->GetTypeId() == EntityTypeId_Agent && entity->GetOwnerId() != m_id)
                 {
-                    // Capture this agent!
-                    int oldOwnerId = capturedAgent->GetOwnerId();
-                    capturedAgent->SetOwnerId(m_id);
-                    if (capturedAgent->m_intel != -1)
+                    AgentEntity* capturedAgent = static_cast<AgentEntity*>(entity);
+                    if (capturedAgent->m_currentStop == agent->m_currentStop)
                     {
-                        IntelData& intelData = m_server->GetIntel(capturedAgent->m_intel);
-                        intelData.m_agentId = -1;
-                        intelData.m_owner = -1;
-                        capturedAgent->m_intel = -1;
+                        // Capture this agent!
+                        int oldOwnerId = capturedAgent->GetOwnerId();
+                        capturedAgent->SetOwnerId(m_id);
+                        if (capturedAgent->m_intel != -1)
+                        {
+                            IntelData& intelData = m_server->GetIntel(capturedAgent->m_intel);
+                            intelData.m_agentId = -1;
+                            intelData.m_owner = -1;
+                            capturedAgent->m_intel = -1;
+                        }
+                        m_agents.push_back(capturedAgent);
+                        m_server->SendNotification(m_id, Protocol::Notification_AgentCaptured, capturedAgent->GetId(), capturedAgent->m_currentStop, -1);
+                        m_server->SendNotification(oldOwnerId, Protocol::Notification_AgentLost, -1, capturedAgent->m_currentStop, -1);
+                        agentCaptured = true;
+                        break;
                     }
-                    m_agents.push_back(capturedAgent);
-                    m_server->SendNotification(m_id, Protocol::Notification_AgentCaptured, capturedAgent->GetId(), capturedAgent->m_currentStop, -1);
-                    m_server->SendNotification(oldOwnerId, Protocol::Notification_AgentLost, -1, capturedAgent->m_currentStop, -1);
-                    break;
                 }
+            }
+
+            if (!agentCaptured)
+            {
+                m_server->NotifyCrime(agent->GetId(), agent->m_currentStop);
             }
         }
         break;
@@ -320,7 +330,10 @@ void Server::Client::TakeIntel(AgentEntity* agent)
         intelData.m_owner = clientId;
         m_server->SendNotification(clientId, Protocol::Notification_IntelCaptured, agent->GetId(), agent->m_currentStop, -1);
         agent->m_intel = intel;
-
+    }
+    else
+    {
+        m_server->NotifyCrime(agent->GetId(), agent->m_currentStop);
     }
 }
 
