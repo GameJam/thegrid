@@ -758,16 +758,20 @@ void ClientGame::OnMouseDown(int x, int y, int button)
 
             if (agentUnderCursor == -1 && stopUnderCursor != -1 && m_selectedAgent != -1)
             {
-                int fromStop = GetEntity(m_selectedAgent)->Cast<AgentEntity>()->m_currentStop;
-                m_pathLength = m_map.GetPath(fromStop, stopUnderCursor, m_path);
-                if (m_pathLength > 1)
+                const Entity* selectedEntity = GetEntity(m_selectedAgent);
+                if (selectedEntity != NULL)
                 {
-                    m_nextStop = 0;
-                }
-                else
-                {
-                    m_pathLength = 0;
-                    m_nextStop = -1;
+                    int fromStop = selectedEntity->Cast<AgentEntity>()->m_currentStop;
+                    m_pathLength = m_map.GetPath(fromStop, stopUnderCursor, m_path);
+                    if (m_pathLength > 1)
+                    {
+                        m_nextStop = 0;
+                    }
+                    else
+                    {
+                        m_pathLength = 0;
+                        m_nextStop = -1;
+                    }
                 }
             }
             else if (m_selectedAgent != agentUnderCursor)
